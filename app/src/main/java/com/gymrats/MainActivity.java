@@ -1,6 +1,8 @@
 package com.gymrats;
 
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -42,13 +44,60 @@ public class MainActivity extends AppCompatActivity {
         // NavController 가져오기
         navController = navHostFragment.getNavController();
 
-        // BottomNavigationView 가져오기
+        // 하단 네비게이션 연결
         BottomNavigationView bottomNavigation =
                 findViewById(R.id.bottomNavigation);
-        // BottomNavigationView와 NavController 연결
+
         NavigationUI.setupWithNavController(
                 bottomNavigation,
                 navController
         );
+
+        // Community 상단 탭
+        View communityTabs = findViewById(R.id.communityTabs);
+
+        Button btnExerciseFeed =
+                findViewById(R.id.btnExerciseFeed);
+
+        Button btnWorldCup =
+                findViewById(R.id.btnWorldCup);
+
+        // 현재 화면에 따라 상단 탭 표시 여부 결정
+        navController.addOnDestinationChangedListener(
+                (controller, destination, arguments) -> {
+
+                    int currentId = destination.getId();
+
+                    boolean isCommunityScreen =
+                            currentId == R.id.communityFragment ||
+                                    currentId == R.id.worldCupFragment;
+
+                    communityTabs.setVisibility(
+                            isCommunityScreen ? View.VISIBLE : View.GONE
+                    );
+
+                    // 현재 화면에 해당하는 탭은 비활성화
+                    btnExerciseFeed.setEnabled(
+                            currentId != R.id.communityFragment
+                    );
+
+                    btnWorldCup.setEnabled(
+                            currentId != R.id.worldCupFragment
+                    );
+                }
+        );
+
+        // 이상형 월드컵 탭
+        btnWorldCup.setOnClickListener(v -> {
+            navController.navigate(R.id.worldCupFragment);
+        });
+
+        // 대체 운동법 탭
+        btnExerciseFeed.setOnClickListener(v -> {
+            navController.popBackStack(
+                    R.id.communityFragment,
+                    false
+            );
+        });
     }
 }
