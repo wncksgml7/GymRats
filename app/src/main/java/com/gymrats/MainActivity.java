@@ -1,5 +1,6 @@
 package com.gymrats;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
@@ -14,8 +15,10 @@ import androidx.navigation.NavOptions;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
 
 
+import com.gymrats.ui.auth.LoginActivity;
 import com.gymrats.ui.home.HomeFragment;
 import com.gymrats.ui.community.CommunityFragment;
 import com.gymrats.ui.profile.MyPageFragment;
@@ -28,6 +31,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // 로그인되지 않은 상태면 로그인 화면으로 이동
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+            return;
+        }
+
         setContentView(R.layout.activity_main);
 
         // 1. NavHostFragment 가져오기
