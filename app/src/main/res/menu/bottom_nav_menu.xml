@@ -8,7 +8,7 @@
         android:title="Home" />
 
     <item
-        android:id="@+id/communityFragment"
+        android:id="@+id/communityGraph"
         android:icon="@android:drawable/ic_menu_search"
         android:title="Community" />
 

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "328765836107",
+    "project_id": "gymrats-d866a",
+    "storage_bucket": "gymrats-d866a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:328765836107:android:cad15dc4d1d2eb3f2bf6ce",
+        "android_client_info": {
+          "package_name": "com.gymrats"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBj05auuRZq1zSs7em_ECcZJt2gyhlOr1s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

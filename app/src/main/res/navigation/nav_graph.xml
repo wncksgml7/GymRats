@@ -12,10 +12,21 @@
         android:name="com.gymrats.ui.home.HomeFragment"
         android:label="Home" />
 
-    <fragment
-        android:id="@+id/communityFragment"
-        android:name="com.gymrats.ui.community.CommunityFragment"
-        android:label="Community" />
+    <navigation
+        android:id="@+id/communityGraph"
+        app:startDestination="@id/communityFragment">
+
+        <fragment
+            android:id="@+id/communityFragment"
+            android:name="com.gymrats.ui.community.CommunityFragment"
+            android:label="Community" />
+
+        <fragment
+            android:id="@+id/worldCupFragment"
+            android:name="com.gymrats.ui.worldcup.WorldCupFragment"
+            android:label="World Cup" />
+
+    </navigation>
 
     <fragment
         android:id="@+id/myPageFragment"
