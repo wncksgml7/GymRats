@@ -8,6 +8,14 @@ import androidx.fragment.app.Fragment;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+
+import androidx.navigation.NavController;
+import androidx.navigation.NavOptions;
+import androidx.navigation.fragment.NavHostFragment;
+import androidx.navigation.ui.NavigationUI;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+
+
 import com.gymrats.ui.home.HomeFragment;
 import com.gymrats.ui.community.CommunityFragment;
 import com.gymrats.ui.profile.MyPageFragment;
@@ -15,35 +23,32 @@ import com.gymrats.ui.profile.MyPageFragment;
 
 public class MainActivity extends AppCompatActivity {
 
+    private NavController navController;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // 앱을 처음 실행했을 때 HomeFragment 표시
-        if (savedInstanceState == null) {
-            showFragment(new HomeFragment());
+        // 1. NavHostFragment 가져오기
+        NavHostFragment navHostFragment =
+                (NavHostFragment) getSupportFragmentManager()
+                        .findFragmentById(R.id.fragmentContainer);
+
+        if (navHostFragment == null) {
+            throw new IllegalStateException("NavHostFragment not found");
         }
-        // Home 버튼 클릭
-        findViewById(R.id.btnHome).setOnClickListener(v -> {
-            showFragment(new HomeFragment());
-        });
 
-        // Community 버튼 클릭
-        findViewById(R.id.btnCommunity).setOnClickListener(v -> {
-            showFragment(new CommunityFragment());
-        });
+        // NavController 가져오기
+        navController = navHostFragment.getNavController();
 
-        findViewById(R.id.btnMyPage).setOnClickListener(v -> {
-            showFragment(new MyPageFragment());
-        });
-
-    }
-    // Fragment를 교체하는 메서드
-    private void showFragment(Fragment fragment) {
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.fragmentContainer, fragment)
-                .commit();
+        // BottomNavigationView 가져오기
+        BottomNavigationView bottomNavigation =
+                findViewById(R.id.bottomNavigation);
+        // BottomNavigationView와 NavController 연결
+        NavigationUI.setupWithNavController(
+                bottomNavigation,
+                navController
+        );
     }
 }
