@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    id("com.google.gms.google-services") version "4.5.0" apply false
 }
 
 android {
@@ -42,4 +43,9 @@ dependencies {
     implementation("androidx.navigation:navigation-fragment:2.10.2")
     implementation("androidx.navigation:navigation-ui:2.10.2")
     implementation("com.google.android.material:material:1.14.0")
+
+
+    implementation(platform("com.google.firebase:firebase-bom:35.1.0"))
+
+    implementation("com.google.firebase:firebase-auth")
 }
