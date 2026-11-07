@@ -4,52 +4,22 @@
     android:layout_height="wrap_content"
     android:layout_marginTop="20dp"
     android:background="@drawable/bg_widget_card"
+    android:gravity="center"
     android:orientation="vertical"
     android:padding="22dp">
 
-    <!-- 제목 및 위치 이동 버튼 -->
-    <LinearLayout
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:text="운동 타이머"
+        android:textColor="#171717"
+        android:textSize="19sp"
+        android:textStyle="bold" />
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="운동 타이머"
-            android:textColor="#171717"
-            android:textSize="19sp"
-            android:textStyle="bold" />
-
-        <Button
-            android:id="@+id/btnMoveUp"
-            android:layout_width="48dp"
-            android:layout_height="42dp"
-            android:minWidth="0dp"
-            android:padding="0dp"
-            android:text="↑"
-            android:textSize="18sp" />
-
-        <Button
-            android:id="@+id/btnMoveDown"
-            android:layout_width="48dp"
-            android:layout_height="42dp"
-            android:layout_marginStart="5dp"
-            android:minWidth="0dp"
-            android:padding="0dp"
-            android:text="↓"
-            android:textSize="18sp" />
-
-    </LinearLayout>
-
-    <!-- 운동 시간 -->
     <TextView
         android:id="@+id/tvWorkoutElapsed"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
         android:layout_marginTop="12dp"
         android:fontFamily="sans-serif"
         android:text="00:00:00"
@@ -57,7 +27,6 @@
         android:textSize="38sp"
         android:textStyle="bold" />
 
-    <!-- 타이머 조작 버튼 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -94,5 +63,4 @@
             android:visibility="gone" />
 
     </LinearLayout>
-
 </LinearLayout>
