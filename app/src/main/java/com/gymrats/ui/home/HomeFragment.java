@@ -45,6 +45,8 @@ public class HomeFragment extends Fragment {
     private LinearLayout widgetContainer;
     private TextView timerText;
     private Button startButton, pauseButton, resetButton;
+    private View timerCard;
+    private Button moveUpButton, moveDownButton;
     private long elapsedBeforeStart, startedAt;
     private boolean timerRunning, timerAdded;
 
@@ -159,13 +161,20 @@ public class HomeFragment extends Fragment {
 
     private void addWorkoutTimerWidget() {
         if (widgetContainer == null || timerText != null) return;
-        View card = LayoutInflater.from(requireContext())
+        timerCard = LayoutInflater.from(requireContext())
                 .inflate(R.layout.widget_workout_timer, widgetContainer, false);
-        widgetContainer.addView(card);
-        timerText = card.findViewById(R.id.tvWorkoutElapsed);
-        startButton = card.findViewById(R.id.btnTimerStart);
-        pauseButton = card.findViewById(R.id.btnTimerPause);
-        resetButton = card.findViewById(R.id.btnTimerReset);
+
+        widgetContainer.addView(timerCard);
+
+        moveUpButton = timerCard.findViewById(R.id.btnMoveUp);
+        moveDownButton = timerCard.findViewById(R.id.btnMoveDown);
+
+        moveUpButton.setOnClickListener(v -> moveWidget(-1));
+        moveDownButton.setOnClickListener(v -> moveWidget(1));
+        timerText = timerCard.findViewById(R.id.tvWorkoutElapsed);
+        startButton = timerCard.findViewById(R.id.btnTimerStart);
+        pauseButton = timerCard.findViewById(R.id.btnTimerPause);
+        resetButton = timerCard.findViewById(R.id.btnTimerReset);
         startButton.setOnClickListener(v -> startTimer());
         pauseButton.setOnClickListener(v -> pauseTimer());
         resetButton.setOnClickListener(v -> resetTimer());
@@ -256,5 +265,18 @@ public class HomeFragment extends Fragment {
         resetButton = null;
         widgetContainer = null;
         super.onDestroyView();
+    }
+    private void moveWidget(int direction) {
+        if (timerCard == null || widgetContainer == null) return;
+
+        int currentPosition = widgetContainer.indexOfChild(timerCard);
+        int newPosition = currentPosition + direction;
+
+        if (newPosition < 0 || newPosition >= widgetContainer.getChildCount()) {
+            return;
+        }
+
+        widgetContainer.removeView(timerCard);
+        widgetContainer.addView(timerCard, newPosition);
     }
 }
