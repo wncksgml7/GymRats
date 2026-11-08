@@ -1,57 +1,157 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent"
-    android:background="#FFFFFF" android:fillViewport="true">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="vertical" android:paddingStart="18dp" android:paddingEnd="18dp"
-        android:paddingTop="22dp" android:paddingBottom="24dp">
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="HOME" android:textColor="#171717" android:textSize="28sp" android:textStyle="bold" />
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:layout_marginTop="22dp" android:text="공식 운동 가이드"
-            android:textColor="#171717" android:textSize="21sp" android:textStyle="bold" />
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:layout_marginTop="5dp" android:text="운동할 부위를 선택해보세요."
-            android:textColor="#888888" android:textSize="14sp" />
-        <GridLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginTop="18dp" android:columnCount="3" android:rowCount="2"
+<ScrollView
+    android:id="@+id/homeScrollView"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    android:fillViewport="true">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="18dp"
+        android:paddingEnd="18dp"
+        android:paddingTop="22dp"
+        android:paddingBottom="24dp">
+
+        <!-- HOME 제목 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="HOME"
+            android:textColor="#171717"
+            android:textSize="28sp"
+            android:textStyle="bold" />
+
+        <!-- 공식 운동 가이드 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:text="공식 운동 가이드"
+            android:textColor="#171717"
+            android:textSize="21sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:text="운동할 부위를 선택해보세요."
+            android:textColor="#888888"
+            android:textSize="14sp" />
+
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:columnCount="3"
+            android:rowCount="2"
             android:useDefaultMargins="true">
+
             <TextView style="@style/HomeGuideTile" android:text="가슴" />
             <TextView style="@style/HomeGuideTile" android:text="등" />
             <TextView style="@style/HomeGuideTile" android:text="하체" />
             <TextView style="@style/HomeGuideTile" android:text="어깨" />
             <TextView style="@style/HomeGuideTile" android:text="팔" />
             <TextView style="@style/HomeGuideTile" android:text="복근" />
+
         </GridLayout>
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginTop="24dp" android:gravity="center"
+
+        <!-- 위젯 구분선 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:gravity="center"
             android:text="────────────  나의 홈 위젯  ────────────"
-            android:textColor="#A0A0A0" android:textSize="12sp" />
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:layout_marginTop="26dp" android:text="오늘의 루틴"
-            android:textColor="#171717" android:textSize="20sp" android:textStyle="bold" />
-        <LinearLayout android:id="@+id/routineWidget" android:layout_width="match_parent"
-            android:layout_height="160dp" android:layout_marginTop="16dp"
-            android:background="@drawable/bg_widget_card" android:gravity="center"
-            android:orientation="vertical" android:padding="16dp">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="⊕" android:textColor="#5B6BD5" android:textSize="34sp" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:layout_marginTop="4dp" android:text="불러온 루틴이 없습니다"
-                android:textColor="#222222" android:textSize="16sp" android:textStyle="bold" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:layout_marginTop="5dp" android:text="저장한 루틴을 불러와보세요."
-                android:textColor="#999999" android:textSize="13sp" />
-            <Button android:id="@+id/btnLoadRoutine" android:layout_width="wrap_content"
-                android:layout_height="44dp" android:layout_marginTop="12dp"
-                android:backgroundTint="#5B6BD5" android:text="루틴 불러오기"
-                android:textColor="#FFFFFF" />
+            android:textColor="#A0A0A0"
+            android:textSize="12sp" />
+
+        <!-- 위젯 전체 컨테이너 -->
+        <LinearLayout
+            android:id="@+id/widgetContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- 오늘의 루틴 위젯 -->
+            <LinearLayout
+                android:id="@+id/routineWidget"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="26dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="오늘의 루틴"
+                    android:textColor="#171717"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="160dp"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/bg_widget_card"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="⊕"
+                        android:textColor="#5B6BD5"
+                        android:textSize="34sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="불러온 루틴이 없습니다"
+                        android:textColor="#222222"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:text="저장한 루틴을 불러와보세요."
+                        android:textColor="#999999"
+                        android:textSize="13sp" />
+
+                    <Button
+                        android:id="@+id/btnLoadRoutine"
+                        android:layout_width="wrap_content"
+                        android:layout_height="44dp"
+                        android:layout_marginTop="12dp"
+                        android:backgroundTint="#5B6BD5"
+                        android:text="루틴 불러오기"
+                        android:textColor="#FFFFFF" />
+
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 추가 위젯이 여기에 배치됨 -->
+
         </LinearLayout>
-        <LinearLayout android:id="@+id/widgetContainer" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:orientation="vertical" />
-        <TextView android:id="@+id/btnAddWidget" android:layout_width="match_parent"
-            android:layout_height="58dp" android:layout_marginTop="22dp"
-            android:background="@drawable/bg_widget_add" android:gravity="center"
-            android:text="+\n위젯 추가" android:textColor="#777777" android:textSize="14sp" />
+
+        <!-- 위젯 추가 버튼 -->
+        <TextView
+            android:id="@+id/btnAddWidget"
+            android:layout_width="match_parent"
+            android:layout_height="58dp"
+            android:layout_marginTop="22dp"
+            android:background="@drawable/bg_widget_add"
+            android:gravity="center"
+            android:text="+&#10;위젯 추가"
+            android:textColor="#777777"
+            android:textSize="14sp" />
+
     </LinearLayout>
 </ScrollView>
