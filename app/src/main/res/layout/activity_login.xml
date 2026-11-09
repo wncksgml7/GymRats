@@ -65,6 +65,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:padding="8dp"
-        android:text="계정이 없으신가요? 회원가입" />
+        android:text="계정이 없으신가요? 회원가입"
+        android:background="?attr/selectableItemBackground"/>
+        <!-- 회원가입에도 터치 효과 추가-->
 
 </LinearLayout>

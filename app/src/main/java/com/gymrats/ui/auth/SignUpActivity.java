@@ -2,7 +2,10 @@ package com.gymrats.ui.auth;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.Spanned;
 import android.text.TextUtils;
+import android.text.style.ForegroundColorSpan;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -11,6 +14,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.color.MaterialColors;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.gymrats.MainActivity;
@@ -45,6 +49,23 @@ public class SignUpActivity extends AppCompatActivity {
 
         btnSignUp.setOnClickListener(v -> signUp());
         textGoLogin.setOnClickListener(v -> finish());
+
+        // 로그인 텍스트 색상 변경
+        TextView textGoSignUp = findViewById(R.id.textGoLogin);
+        int primary = MaterialColors.getColor(textGoSignUp, androidx.appcompat.R.attr.colorPrimary);
+        String fullText = textGoSignUp.getText().toString();
+        String highlight = "로그인";
+        int start = fullText.indexOf(highlight);
+
+        if (start >= 0) {
+            SpannableString spannable = new
+                    SpannableString(fullText);
+            spannable.setSpan(
+                    new ForegroundColorSpan(primary),
+                    start, start + highlight.length(),
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            textGoSignUp.setText(spannable);
+        }
     }
 
     private void signUp() {

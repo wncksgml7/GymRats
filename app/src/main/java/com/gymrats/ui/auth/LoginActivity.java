@@ -11,10 +11,15 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.color.MaterialColors;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.gymrats.MainActivity;
 import com.gymrats.R;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import com.google.android.material.color.MaterialColors;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -43,7 +48,23 @@ public class LoginActivity extends AppCompatActivity {
         editPassword = findViewById(R.id.editPassword);
         btnLogin = findViewById(R.id.btnLogin);
         progressBar = findViewById(R.id.progressBar);
+
+        // 회원가입 텍스트 색상 변경
         TextView textGoSignUp = findViewById(R.id.textGoSignUp);
+        int primary = MaterialColors.getColor(textGoSignUp, androidx.appcompat.R.attr.colorPrimary);
+        String fullText = textGoSignUp.getText().toString();
+        String highlight = "회원가입";
+        int start = fullText.indexOf(highlight);
+
+        if (start >= 0) {
+            SpannableString spannable = new
+                    SpannableString(fullText);
+            spannable.setSpan(
+                    new ForegroundColorSpan(primary),
+                    start, start + highlight.length(),
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            textGoSignUp.setText(spannable);
+        }
 
         btnLogin.setOnClickListener(v -> login());
         textGoSignUp.setOnClickListener(v ->
