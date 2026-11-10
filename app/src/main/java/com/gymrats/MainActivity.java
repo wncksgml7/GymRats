@@ -95,6 +95,13 @@ public class MainActivity extends AppCompatActivity {
                     btnWorldCup.setEnabled(
                             currentId != R.id.worldCupFragment
                     );
+                    // 게시글 작성 중에는 하단 내비게이션 숨김
+                    boolean isPostCreateScreen =
+                            currentId == R.id.postCreateFragment;
+
+                    bottomNavigation.setVisibility(
+                            isPostCreateScreen ? View.GONE : View.VISIBLE
+                    );
                 }
         );
 

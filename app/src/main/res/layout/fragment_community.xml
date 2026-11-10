@@ -13,5 +13,12 @@
         android:text="GymRats Community"
         android:textSize="24sp"
         android:textStyle="bold" />
+    <!-- 게시글 작성 화면으로 이동 -->
+    <Button
+        android:id="@+id/btnCreatePost"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="운동법 등록" />
 
 </LinearLayout>

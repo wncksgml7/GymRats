@@ -26,6 +26,11 @@
             android:name="com.gymrats.ui.worldcup.WorldCupFragment"
             android:label="World Cup" />
 
+        <fragment
+            android:id="@+id/postCreateFragment"
+            android:name="com.gymrats.ui.community.PostCreateFragment"
+            android:label="운동법 등록" />
+
     </navigation>
 
     <fragment
