@@ -1,24 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:padding="12dp">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <!-- 목록 제목과 게시글 등록 버튼 -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="GymRats Community"
-        android:textSize="24sp"
-        android:textStyle="bold" />
-    <!-- 게시글 작성 화면으로 이동 -->
-    <Button
-        android:id="@+id/btnCreatePost"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="운동법 등록" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="대체 운동법"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnCreatePost"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="운동법 등록" />
+
+    </LinearLayout>
+
+    <!-- 목록, 로딩 표시, 빈 화면 안내 -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerPosts"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="12dp" />
+
+        <ProgressBar
+            android:id="@+id/progressPosts"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center" />
+
+        <TextView
+            android:id="@+id/textPostsMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:padding="24dp"
+            android:text="아직 등록된 운동법이 없습니다."
+            android:textSize="16sp"
+            android:visibility="gone" />
+
+    </FrameLayout>
 
 </LinearLayout>

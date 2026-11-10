@@ -46,5 +46,6 @@ dependencies {
     implementation("androidx.navigation:navigation-ui:2.10.2")
     implementation("com.google.android.material:material:1.14.0")
     implementation("com.google.firebase:firebase-firestore")
+    implementation("androidx.recyclerview:recyclerview:1.4.0")
 
 }

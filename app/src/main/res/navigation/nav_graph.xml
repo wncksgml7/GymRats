@@ -16,6 +16,30 @@
         android:id="@+id/communityGraph"
         app:startDestination="@id/communityFragment">
 
+        <!-- 다른 회원의 공개 프로필 -->
+        <fragment
+            android:id="@+id/authorProfileFragment"
+            android:name="com.gymrats.ui.community.AuthorProfileFragment"
+            android:label="작성자 프로필">
+
+            <argument
+                android:name="userId"
+                app:argType="string" />
+
+        </fragment>
+
+        <!-- 선택한 게시글의 ID를 받아 상세 화면 표시 -->
+        <fragment
+            android:id="@+id/postDetailFragment"
+            android:name="com.gymrats.ui.community.PostDetailFragment"
+            android:label="운동법 상세">
+
+            <argument
+                android:name="postId"
+                app:argType="string" />
+
+        </fragment>
+
         <fragment
             android:id="@+id/communityFragment"
             android:name="com.gymrats.ui.community.CommunityFragment"

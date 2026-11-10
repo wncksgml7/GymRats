@@ -95,12 +95,14 @@ public class MainActivity extends AppCompatActivity {
                     btnWorldCup.setEnabled(
                             currentId != R.id.worldCupFragment
                     );
-                    // 게시글 작성 중에는 하단 내비게이션 숨김
-                    boolean isPostCreateScreen =
-                            currentId == R.id.postCreateFragment;
+                    // 등록·상세·작성자 프로필에서는 하단 내비게이션 숨김
+                    boolean hideBottomNavigation =
+                            currentId == R.id.postCreateFragment ||
+                                    currentId == R.id.postDetailFragment ||
+                                    currentId == R.id.authorProfileFragment;
 
                     bottomNavigation.setVisibility(
-                            isPostCreateScreen ? View.GONE : View.VISIBLE
+                            hideBottomNavigation ? View.GONE : View.VISIBLE
                     );
                 }
         );
