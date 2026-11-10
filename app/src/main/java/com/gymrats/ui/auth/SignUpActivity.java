@@ -89,18 +89,53 @@ public class SignUpActivity extends AppCompatActivity {
         setLoading(true);
         auth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
-                    setLoading(false);
-                    if (task.isSuccessful()) {
-                        // 가입 성공 시 자동으로 로그인 상태가 되므로 메인으로 이동
-                        Intent intent = new Intent(this, MainActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        startActivity(intent);
-                        finish();
-                    } else {
-                        Toast.makeText(this,
+                    if (!task.isSuccessful()) {
+                        setLoading(false);
+
+                        Toast.makeText(
+                                this,
                                 AuthErrorMessages.from(task.getException()),
-                                Toast.LENGTH_SHORT).show();
+                                Toast.LENGTH_SHORT
+                        ).show();
+                        return;
                     }
+
+                    if (auth.getCurrentUser() == null) {
+                        setLoading(false);
+
+                        Toast.makeText(
+                                this,
+                                "로그인 상태를 확인할 수 없습니다. 다시 로그인해주세요.",
+                                Toast.LENGTH_LONG
+                        ).show();
+                        finish();
+                        return;
+                    }
+
+                    UserDocumentManager.createIfMissing(
+                            auth.getCurrentUser().getUid()
+                    ).addOnCompleteListener(this, userTask -> {
+                        setLoading(false);
+
+                        if (userTask.isSuccessful()) {
+                            Intent intent = new Intent(this, MainActivity.class);
+                            intent.addFlags(
+                                    Intent.FLAG_ACTIVITY_NEW_TASK
+                                            | Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            );
+                            startActivity(intent);
+                            finish();
+                        } else {
+                            // Authentication 계정은 이미 만들어진 상태.
+                            // 로그인 화면으로 돌아가 재시도하면 문서 생성을 다시 수행함.
+                            Toast.makeText(
+                                    this,
+                                    "가입은 완료됐지만 회원 정보 저장에 실패했습니다. 로그인 화면에서 다시 로그인해주세요.",
+                                    Toast.LENGTH_LONG
+                            ).show();
+                            finish();
+                        }
+                    });
                 });
     }
 
