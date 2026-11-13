@@ -4,10 +4,8 @@ import android.graphics.drawable.GradientDrawable;
 import android.view.MotionEvent;
 import android.widget.ScrollView;
 import android.util.Log;
-import android.widget.ScrollView;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -19,7 +17,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -40,6 +37,34 @@ public class HomeFragment extends Fragment {
     private static final String ELAPSED = "workout_timer_elapsed";
     private static final String STARTED = "workout_timer_started";
     private static final String RUNNING = "workout_timer_running";
+    private static final String REST_ADDED = "rest_timer_added";
+    private static final String REST_SELECTED = "rest_timer_selected";
+    private static final String REST_REMAINING = "rest_timer_remaining";
+    private static final String REST_END = "rest_timer_end";
+    private static final String REST_RUNNING = "rest_timer_running";
+
+    private boolean restAdded;
+    private boolean restRunning;
+    private int restSelectedSeconds = 90;
+    private long restRemainingMs = 90000L;
+    private long restEndTime;
+    private View restCard;
+    private TextView tvRestTime;
+    private Button btnRestStart, btnRestPause, btnRestReset;
+    private Button[] restTimeButtons;
+    private final Handler restHandler = new Handler(Looper.getMainLooper());
+    private final Runnable restTicker = new Runnable() {
+        @Override public void run() {
+            if (!restRunning || tvRestTime == null) return;
+            restRemainingMs = Math.max(0L, restEndTime - SystemClock.elapsedRealtime());
+            if (restRemainingMs == 0L) {
+                restRunning = false;
+                saveRestState();
+            }
+            updateRestUI();
+            if (restRunning) restHandler.postDelayed(this, 200L);
+        }
+    };
 
     private final Handler handler = new Handler(Looper.getMainLooper());
 
@@ -86,6 +111,17 @@ public class HomeFragment extends Fragment {
 
         timerAdded = prefs.getBoolean(ADDED, false);
         routineAdded = prefs.getBoolean(ROUTINE_ADDED, true);
+        restAdded = prefs.getBoolean(REST_ADDED, false);
+        restSelectedSeconds = prefs.getInt(REST_SELECTED, 90);
+        if (restSelectedSeconds != 30 && restSelectedSeconds != 60
+                && restSelectedSeconds != 90 && restSelectedSeconds != 120) restSelectedSeconds = 90;
+        restRemainingMs = prefs.getLong(REST_REMAINING, restSelectedSeconds * 1000L);
+        restEndTime = prefs.getLong(REST_END, 0L);
+        restRunning = prefs.getBoolean(REST_RUNNING, false);
+        if (restRunning) {
+            restRemainingMs = Math.max(0L, restEndTime - SystemClock.elapsedRealtime());
+            if (restRemainingMs == 0L) restRunning = false;
+        }
 
         elapsedBeforeStart = prefs.getLong(ELAPSED, 0L);
         startedAt = prefs.getLong(STARTED, 0L);
@@ -104,6 +140,7 @@ public class HomeFragment extends Fragment {
             if (timerAdded) {
                 widgetOrder.add("timer");
             }
+            if (restAdded) widgetOrder.add("rest");
         }
 
         if (routineAdded && !widgetOrder.contains("routine")) {
@@ -121,6 +158,8 @@ public class HomeFragment extends Fragment {
         if (!timerAdded) {
             widgetOrder.remove("timer");
         }
+        if (restAdded && !widgetOrder.contains("rest")) widgetOrder.add("rest");
+        if (!restAdded) widgetOrder.remove("rest");
     }
 
     @Override
@@ -150,6 +189,7 @@ public class HomeFragment extends Fragment {
         if (timerAdded) {
             createWorkoutTimerWidget();
         }
+        if (restAdded) createRestTimerWidget();
 
         renderWidgets();
 
@@ -237,9 +277,26 @@ public class HomeFragment extends Fragment {
         addWidgetRow(sheet,
                 "세트 사이 휴식 타이머",
                 "세트 사이 휴식 시간을 관리하세요.",
-                true,
-                null,
-                null);
+                restAdded,
+                () -> {
+                    restAdded = true;
+                    if (!widgetOrder.contains("rest")) widgetOrder.add("rest");
+                    createRestTimerWidget();
+                    saveState();
+                    saveWidgetOrder();
+                    renderWidgets();
+                    dialog.dismiss();
+                },
+                () -> {
+                    restAdded = false;
+                    widgetOrder.remove("rest");
+                    restHandler.removeCallbacks(restTicker);
+                    restRunning = false;
+                    restRemainingMs = restSelectedSeconds * 1000L;
+                    saveRestState();
+                    saveWidgetOrder();
+                    renderWidgets();
+                });
 
         // 운동 타이머
         addWidgetRow(sheet,
@@ -405,11 +462,10 @@ public class HomeFragment extends Fragment {
             final int position = i;
             String id = widgetOrder.get(i);
 
-            String name = id.equals("routine")
-                    ? "오늘의 루틴"
-                    : "운동 타이머";
+            String name = id.equals("routine") ? "오늘의 루틴"
+                    : id.equals("rest") ? "세트 사이 휴식 타이머" : "운동 타이머";
 
-            String symbol = id.equals("routine") ? "▦" : "◷";
+            String symbol = id.equals("routine") ? "▦" : id.equals("rest") ? "⌛" : "◷";
 
             LinearLayout row = new LinearLayout(requireContext());
             row.setGravity(Gravity.CENTER_VERTICAL);
@@ -514,6 +570,13 @@ public class HomeFragment extends Fragment {
         if (id.equals("timer")) {
             timerAdded = false;
         }
+        if (id.equals("rest")) {
+            restAdded = false;
+            restRunning = false;
+            restRemainingMs = restSelectedSeconds * 1000L;
+            restHandler.removeCallbacks(restTicker);
+            saveRestState();
+        }
 
         saveState();
         saveWidgetOrder();
@@ -548,6 +611,15 @@ public class HomeFragment extends Fragment {
 
                 widgetContainer.addView(timerCard);
             }
+            if (id.equals("rest") && restAdded) {
+                if (restCard == null) createRestTimerWidget();
+                if (restCard != null) {
+                    if (restCard.getParent() instanceof ViewGroup) {
+                        ((ViewGroup) restCard.getParent()).removeView(restCard);
+                    }
+                    widgetContainer.addView(restCard);
+                }
+            }
         }
     }
 
@@ -566,6 +638,7 @@ public class HomeFragment extends Fragment {
                 .putString(ORDER, result.toString())
                 .putBoolean(ROUTINE_ADDED, routineAdded)
                 .putBoolean(ADDED, timerAdded)
+                .putBoolean(REST_ADDED, restAdded)
                 .apply();
     }
 
@@ -689,6 +762,100 @@ public class HomeFragment extends Fragment {
                 .putLong(ELAPSED, elapsedBeforeStart)
                 .putLong(STARTED, startedAt)
                 .putBoolean(RUNNING, timerRunning)
+                .putBoolean(REST_ADDED, restAdded)
+                .apply();
+    }
+
+    // -------------------------------
+    // 세트 사이 휴식 타이머
+    // -------------------------------
+
+    private void createRestTimerWidget() {
+        if (restCard != null || widgetContainer == null) return;
+        restCard = LayoutInflater.from(requireContext()).inflate(
+                R.layout.widget_rest_timer, widgetContainer, false);
+        tvRestTime = restCard.findViewById(R.id.tvRestTime);
+        btnRestStart = restCard.findViewById(R.id.btnRestStart);
+        btnRestPause = restCard.findViewById(R.id.btnRestPause);
+        btnRestReset = restCard.findViewById(R.id.btnRestReset);
+        restTimeButtons = new Button[] {
+                restCard.findViewById(R.id.btnRest30),
+                restCard.findViewById(R.id.btnRest60),
+                restCard.findViewById(R.id.btnRest90),
+                restCard.findViewById(R.id.btnRest120)
+        };
+        final int[] durations = {30, 60, 90, 120};
+        for (int i = 0; i < durations.length; i++) {
+            final int chosen = durations[i];
+            restTimeButtons[i].setOnClickListener(v -> {
+                restHandler.removeCallbacks(restTicker);
+                restSelectedSeconds = chosen;
+                restRemainingMs = chosen * 1000L;
+                restRunning = false;
+                saveRestState();
+                updateRestUI();
+            });
+        }
+        btnRestStart.setOnClickListener(v -> {
+            if (restRunning) return;
+            if (restRemainingMs <= 0L) restRemainingMs = restSelectedSeconds * 1000L;
+            restEndTime = SystemClock.elapsedRealtime() + restRemainingMs;
+            restRunning = true;
+            saveRestState();
+            startRestTicker();
+        });
+        btnRestPause.setOnClickListener(v -> {
+            if (!restRunning) return;
+            restRemainingMs = Math.max(0L, restEndTime - SystemClock.elapsedRealtime());
+            restRunning = false;
+            restHandler.removeCallbacks(restTicker);
+            saveRestState();
+            updateRestUI();
+        });
+        btnRestReset.setOnClickListener(v -> {
+            restRunning = false;
+            restHandler.removeCallbacks(restTicker);
+            restRemainingMs = restSelectedSeconds * 1000L;
+            saveRestState();
+            updateRestUI();
+        });
+        updateRestUI();
+        if (restRunning) startRestTicker();
+    }
+
+    private void startRestTicker() {
+        restHandler.removeCallbacks(restTicker);
+        if (restRunning && tvRestTime != null) restTicker.run();
+        else updateRestUI();
+    }
+
+    private void updateRestUI() {
+        if (tvRestTime == null) return;
+        long secondsTotal = (restRemainingMs + 999L) / 1000L;
+        tvRestTime.setText(String.format(Locale.getDefault(), "%02d:%02d",
+                secondsTotal / 60L, secondsTotal % 60L));
+        btnRestStart.setVisibility(restRunning ? View.GONE : View.VISIBLE);
+        btnRestPause.setVisibility(restRunning ? View.VISIBLE : View.GONE);
+        boolean initial = !restRunning
+                && restRemainingMs == restSelectedSeconds * 1000L;
+        btnRestReset.setVisibility(initial ? View.GONE : View.VISIBLE);
+        btnRestStart.setText(initial || restRemainingMs == 0L ? "시작" : "계속");
+        int[] durations = {30, 60, 90, 120};
+        for (int i = 0; i < durations.length; i++) {
+            boolean selected = durations[i] == restSelectedSeconds;
+            restTimeButtons[i].setBackgroundTintList(
+                    android.content.res.ColorStateList.valueOf(
+                            selected ? 0xFF5B6BD5 : 0xFFF3F4F6));
+            restTimeButtons[i].setTextColor(selected ? 0xFFFFFFFF : 0xFF777777);
+        }
+    }
+
+    private void saveRestState() {
+        if (prefs == null) return;
+        prefs.edit().putInt(REST_SELECTED, restSelectedSeconds)
+                .putLong(REST_REMAINING, restRemainingMs)
+                .putLong(REST_END, restEndTime)
+                .putBoolean(REST_RUNNING, restRunning)
                 .apply();
     }
 
@@ -946,12 +1113,19 @@ public class HomeFragment extends Fragment {
         }
 
         renderTimer();
+        if (restRunning && restAdded && tvRestTime != null) startRestTicker();
     }
 
     @Override
     public void onPause() {
         handler.removeCallbacks(ticker);
+        restHandler.removeCallbacks(restTicker);
+        if (restRunning) {
+            restRemainingMs = Math.max(0L, restEndTime - SystemClock.elapsedRealtime());
+            if (restRemainingMs == 0L) restRunning = false;
+        }
         saveState();
+        saveRestState();
         saveWidgetOrder();
 
         super.onPause();
@@ -961,6 +1135,13 @@ public class HomeFragment extends Fragment {
     public void onDestroyView() {
 
         handler.removeCallbacks(ticker);
+        restHandler.removeCallbacks(restTicker);
+        tvRestTime = null;
+        btnRestStart = null;
+        btnRestPause = null;
+        btnRestReset = null;
+        restTimeButtons = null;
+        restCard = null;
 
         timerText = null;
         startButton = null;
