@@ -36,12 +36,6 @@ public class LoginActivity extends AppCompatActivity {
 
         auth = FirebaseAuth.getInstance();
 
-        // 이미 로그인된 사용자는 바로 메인 화면으로 이동
-        if (auth.getCurrentUser() != null) {
-            goToMain();
-            return;
-        }
-
         setContentView(R.layout.activity_login);
 
         editEmail = findViewById(R.id.editEmail);
@@ -69,6 +63,11 @@ public class LoginActivity extends AppCompatActivity {
         btnLogin.setOnClickListener(v -> login());
         textGoSignUp.setOnClickListener(v ->
                 startActivity(new Intent(this, SignUpActivity.class)));
+
+        // 화면 초기화 후 기존 로그인 사용자의 문서도 확인
+        if (auth.getCurrentUser() != null) {
+            goToMain();
+        }
     }
 
     private void login() {
@@ -95,8 +94,35 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void goToMain() {
+        if (auth.getCurrentUser() == null) {
+            return;
+        }
+
+        setLoading(true);
+
+        UserDocumentManager.createIfMissing(
+                auth.getCurrentUser().getUid()
+        ).addOnCompleteListener(this, task -> {
+            setLoading(false);
+
+            if (task.isSuccessful()) {
+                openMainActivity();
+            } else {
+                Toast.makeText(
+                        this,
+                        "회원 정보 준비에 실패했습니다. 네트워크를 확인한 후 다시 로그인해주세요.",
+                        Toast.LENGTH_LONG
+                ).show();
+            }
+        });
+    }
+
+    private void openMainActivity() {
         Intent intent = new Intent(this, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        intent.addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK
+                        | Intent.FLAG_ACTIVITY_CLEAR_TASK
+        );
         startActivity(intent);
         finish();
     }

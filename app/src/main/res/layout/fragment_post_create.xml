@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- 뒤로가기 버튼과 화면 제목 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="뒤로가기"
+                android:src="@drawable/ic_arrow_back" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="운동법 등록"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <!-- 제목과 운동 설명 -->
+        <EditText
+            android:id="@+id/editPostTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:hint="제목"
+            android:inputType="textCapSentences"
+            android:maxLength="60"
+            android:maxLines="1" />
+
+        <EditText
+            android:id="@+id/editPostDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="top|start"
+            android:hint="운동 방법을 설명해주세요."
+            android:inputType="textMultiLine|textCapSentences"
+            android:maxLength="3000"
+            android:minLines="5" />
+
+        <EditText
+            android:id="@+id/editPostPrecaution"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="top|start"
+            android:hint="주의사항 (선택)"
+            android:inputType="textMultiLine|textCapSentences"
+            android:maxLength="1000"
+            android:minLines="3" />
+
+        <!-- 주 운동 부위는 하나만 선택 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="주 운동 부위"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <Spinner
+            android:id="@+id/spinnerPrimaryBodyPart"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="8dp" />
+
+        <!-- 보조 부위와 필요 기구는 여러 개 선택 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="보조 운동 부위 (선택)"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnSecondaryBodyParts"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="보조 운동 부위 선택" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="필요 기구"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnEquipment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="기구 선택" />
+
+        <!-- 저장 기능 연결 전까지 등록 버튼 비활성화 -->
+        <Button
+            android:id="@+id/btnSubmitPost"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:text="등록" />
+
+    </LinearLayout>
+</ScrollView>
