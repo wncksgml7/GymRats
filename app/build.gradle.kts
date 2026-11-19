@@ -46,6 +46,10 @@ dependencies {
     implementation("androidx.navigation:navigation-ui:2.10.2")
     implementation("com.google.android.material:material:1.14.0")
     implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-storage")
+    implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation("androidx.recyclerview:recyclerview:1.4.0")
+    implementation("androidx.media3:media3-exoplayer:1.11.1")
+    implementation("androidx.media3:media3-ui:1.11.1")
 
 }

@@ -1,6 +1,7 @@
 package com.gymrats.ui.community;
 
 import android.os.Bundle;
+import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -9,10 +10,20 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import androidx.media3.common.AudioAttributes;
+import androidx.media3.common.C;
+import androidx.media3.common.MediaItem;
+import androidx.media3.common.PlaybackException;
+import androidx.media3.common.Player;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.ui.PlayerView;
 import com.gymrats.R;
 import android.widget.Button;
 
@@ -20,10 +31,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+@androidx.annotation.OptIn(markerClass = UnstableApi.class)
 public class PostDetailFragment extends Fragment {
 
     public static final String ARG_POST_ID = "postId";
     private static final String TAG = "PostDetailFragment";
+    private ExoPlayer player;
+    private PlayerView playerView;
+    private String videoPath;
+    private Uri videoUri;
+    private long playbackPosition;
+    private boolean playWhenReady;
+    private boolean started;
+    private boolean resolvingVideo;
+    private int videoRequest;
+    private boolean postLoaded;
+    private VideoPlaybackCache playbackCache;
 
     public PostDetailFragment() {
         super(R.layout.fragment_post_detail);
@@ -35,6 +58,19 @@ public class PostDetailFragment extends Fragment {
             @Nullable Bundle savedInstanceState
     ) {
         super.onViewCreated(view, savedInstanceState);
+        postLoaded = false;
+        playbackCache = new ViewModelProvider(this).get(VideoPlaybackCache.class);
+        playerView = view.findViewById(R.id.postVideoPlayer);
+        if (savedInstanceState != null) {
+            playbackPosition = savedInstanceState.getLong("videoPosition", 0);
+            playWhenReady = savedInstanceState.getBoolean("videoPlaying", false);
+            videoPath = savedInstanceState.getString("videoPath");
+        }
+        view.findViewById(R.id.btnRetryVideo).setOnClickListener(v -> {
+            releasePlayer();
+            videoUri = null;
+            resolveVideo(view);
+        });
 
         // 이전 피드 화면으로 복귀
         view.findViewById(R.id.btnBack).setOnClickListener(v ->
@@ -94,6 +130,7 @@ public class PostDetailFragment extends Fragment {
     }
 
     private void showPost(View view, DocumentSnapshot post) {
+        postLoaded = true;
         // 제목, 운동 설명과 주의사항 표시
         setText(view, R.id.textDetailTitle,
                 getText(post, "title"));
@@ -139,17 +176,18 @@ public class PostDetailFragment extends Fragment {
         Long reviewCount = post.getLong("reviewCount");
         Double ratingAverage = post.getDouble("ratingAverage");
 
-        setText(
-                view,
-                R.id.textDetailStats,
-                String.format(
-                        Locale.getDefault(),
-                        "좋아요 %d · ★ %.1f · 후기 %d",
-                        likeCount == null ? 0L : likeCount,
-                        ratingAverage == null ? 0.0 : ratingAverage,
-                        reviewCount == null ? 0L : reviewCount
-                )
-        );
+        Long commentCount = post.getLong("commentCount");
+        long likes = likeCount == null ? 0L : likeCount;
+        long comments = commentCount == null ? 0L : commentCount;
+        double rating = ratingAverage == null ? 0.0 : ratingAverage;
+        setText(view, R.id.textDetailLikes, String.valueOf(likes));
+        setText(view, R.id.textDetailComments, String.valueOf(comments));
+        setText(view, R.id.textDetailRating, String.format(Locale.getDefault(), "%.1f (%d)",
+                rating, reviewCount == null ? 0L : reviewCount));
+        view.findViewById(R.id.textDetailLikes).setContentDescription(getString(R.string.post_likes_description, likes));
+        view.findViewById(R.id.textDetailComments).setContentDescription(getString(R.string.post_comments_description, comments));
+        view.findViewById(R.id.textDetailRating).setContentDescription(getString(
+                R.string.post_rating_description, rating, reviewCount == null ? 0L : reviewCount));
 
         view.findViewById(R.id.progressPostDetail)
                 .setVisibility(View.GONE);
@@ -159,9 +197,166 @@ public class PostDetailFragment extends Fragment {
                 .setVisibility(View.VISIBLE);
         // 게시글 작성자의 공개 정보 조회
         loadAuthor(view, post.getString("authorId"));
+        String path = post.getString("videoPath");
+        if (videoPath != null && !videoPath.equals(path)) {
+            releasePlayer();
+            videoUri = null;
+            playbackPosition = 0;
+            playWhenReady = false;
+        }
+        videoPath = path;
+        if (path == null || path.isEmpty()) {
+            playerView.setVisibility(View.GONE);
+            setVideoStatus(view, R.string.post_video_missing, false);
+        } else {
+            playerView.setVisibility(View.VISIBLE);
+            resolveVideo(view);
+        }
+    }
+
+    private void resolveVideo(View view) {
+        if (videoPath == null || videoPath.isEmpty() || resolvingVideo) return;
+        if (videoUri != null) {
+            initializePlayer();
+            return;
+        }
+        resolvingVideo = true;
+        int request = ++videoRequest;
+        setVideoStatus(view, R.string.post_video_loading, false);
+        FirebaseStorage.getInstance().getReference().child(videoPath).getDownloadUrl()
+                .addOnCompleteListener(task -> {
+                    if (request != videoRequest || getView() != view) return;
+                    resolvingVideo = false;
+                    if (!task.isSuccessful()) {
+                        Log.w(TAG, "동영상 주소 조회 실패", task.getException());
+                        setVideoStatus(view, R.string.post_video_failed, true);
+                        return;
+                    }
+                    videoUri = task.getResult();
+                    initializePlayer();
+                });
+    }
+
+    private void initializePlayer() {
+        View view = getView();
+        if (!started || !postLoaded || view == null || playerView == null || videoUri == null || player != null) return;
+        ExoPlayer current = new ExoPlayer.Builder(requireContext().getApplicationContext()).build();
+        player = current;
+        current.setAudioAttributes(new AudioAttributes.Builder()
+                .setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(), true);
+        current.setHandleAudioBecomingNoisy(true);
+        playerView.setPlayer(current);
+        current.addListener(new Player.Listener() {
+            @Override
+            public void onPlaybackStateChanged(int state) {
+                if (player != current || getView() != view) return;
+                if (state == Player.STATE_READY || state == Player.STATE_ENDED) {
+                    if (current.getDuration() <= 0) {
+                        if (videoUri != null && !"file".equals(videoUri.getScheme())) {
+                            prepareLocalPlayback(view);
+                        } else {
+                            setVideoStatus(view, R.string.post_video_failed, true);
+                        }
+                        return;
+                    }
+                    view.findViewById(R.id.textVideoPlaybackStatus).setVisibility(View.GONE);
+                    view.findViewById(R.id.btnRetryVideo).setVisibility(View.GONE);
+                }
+            }
+
+            @Override
+            public void onIsPlayingChanged(boolean playing) {
+                if (player == current && playerView != null) playerView.setKeepScreenOn(playing);
+            }
+
+            @Override
+            public void onPlayerError(@NonNull PlaybackException error) {
+                if (player != current || getView() != view) return;
+                Log.w(TAG, "동영상 재생 실패", error);
+                setVideoStatus(view, R.string.post_video_failed, true);
+            }
+        });
+        setVideoStatus(view, R.string.post_video_loading, false);
+        current.setMediaItem(MediaItem.fromUri(videoUri));
+        current.seekTo(playbackPosition);
+        current.setPlayWhenReady(playWhenReady);
+        current.prepare();
+        playerView.showController();
+    }
+
+    private void prepareLocalPlayback(View view) {
+        releasePlayer();
+        videoUri = null;
+        resolvingVideo = true;
+        int request = ++videoRequest;
+        setVideoStatus(view, R.string.post_video_preparing, false);
+        playbackCache.prepare(videoPath).addOnCompleteListener(task -> {
+            if (request != videoRequest || getView() != view) return;
+            resolvingVideo = false;
+            if (!task.isSuccessful()) {
+                Log.w(TAG, "기존 영상 재생 준비 실패", task.getException());
+                setVideoStatus(view, R.string.post_video_failed, true);
+                return;
+            }
+            videoUri = task.getResult();
+            initializePlayer();
+        });
+    }
+
+    private void setVideoStatus(View view, int message, boolean retry) {
+        TextView status = view.findViewById(R.id.textVideoPlaybackStatus);
+        status.setText(message);
+        status.setVisibility(View.VISIBLE);
+        view.findViewById(R.id.btnRetryVideo).setVisibility(retry ? View.VISIBLE : View.GONE);
+    }
+
+    private void releasePlayer() {
+        if (player == null) return;
+        playbackPosition = player.getCurrentPosition();
+        playWhenReady = player.getPlayWhenReady();
+        if (playerView != null) {
+            playerView.setKeepScreenOn(false);
+            playerView.setPlayer(null);
+        }
+        ExoPlayer previous = player;
+        player = null;
+        previous.release();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        started = true;
+        initializePlayer();
+    }
+
+    @Override
+    public void onStop() {
+        started = false;
+        releasePlayer();
+        super.onStop();
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle state) {
+        super.onSaveInstanceState(state);
+        state.putLong("videoPosition", player == null ? playbackPosition : player.getCurrentPosition());
+        state.putBoolean("videoPlaying", player == null ? playWhenReady : player.getPlayWhenReady());
+        state.putString("videoPath", videoPath);
+    }
+
+    @Override
+    public void onDestroyView() {
+        videoRequest++;
+        resolvingVideo = false;
+        releasePlayer();
+        playerView = null;
+        super.onDestroyView();
     }
 
     private void showError(View view, String message) {
+        postLoaded = false;
+        releasePlayer();
         // 로딩을 끝내고 실패 안내 표시
         view.findViewById(R.id.progressPostDetail)
                 .setVisibility(View.GONE);

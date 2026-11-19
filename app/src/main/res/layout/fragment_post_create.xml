@@ -36,6 +36,55 @@
 
         </LinearLayout>
 
+        <Button
+            android:id="@+id/btnSelectVideo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="동영상 선택 (필수)" />
+
+        <ImageView
+            android:id="@+id/imageVideoPreview"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:scaleType="centerCrop"
+            android:contentDescription="선택한 장면의 썸네일 미리보기"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/thumbnailTimeline"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/thumbnail_timeline_hint" />
+
+            <SeekBar
+                android:id="@+id/seekThumbnailTime"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:contentDescription="@string/thumbnail_timeline_description"
+                android:max="10000" />
+
+            <TextView
+                android:id="@+id/textThumbnailTime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/textVideoStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="동영상을 선택한 뒤 썸네일 장면을 고를 수 있습니다." />
+
         <!-- 제목과 운동 설명 -->
         <EditText
             android:id="@+id/editPostTitle"
@@ -113,7 +162,7 @@
             android:layout_height="wrap_content"
             android:text="기구 선택" />
 
-        <!-- 저장 기능 연결 전까지 등록 버튼 비활성화 -->
+        <!-- 동영상 업로드가 끝나면 게시글 저장 -->
         <Button
             android:id="@+id/btnSubmitPost"
             android:layout_width="match_parent"

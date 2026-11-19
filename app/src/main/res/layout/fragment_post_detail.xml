@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -48,6 +49,35 @@
                 android:orientation="vertical"
                 android:padding="20dp">
 
+                <!-- 세로 영상도 잘리지 않도록 원본 비율에 맞춰 재생합니다. -->
+                <androidx.media3.ui.PlayerView
+                    android:id="@+id/postVideoPlayer"
+                    android:layout_width="match_parent"
+                    android:layout_height="280dp"
+                    android:layout_marginBottom="12dp"
+                    android:background="#17151D"
+                    android:contentDescription="@string/post_video_description"
+                    android:visibility="gone"
+                    app:resize_mode="fit"
+                    app:surface_type="texture_view"
+                    app:show_buffering="always"
+                    app:use_controller="true" />
+
+                <TextView
+                    android:id="@+id/textVideoPlaybackStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/post_video_loading"
+                    android:textSize="14sp" />
+
+                <Button
+                    android:id="@+id/btnRetryVideo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/post_video_retry"
+                    android:visibility="gone" />
+
                 <TextView
                     android:id="@+id/textDetailTitle"
                     android:layout_width="match_parent"
@@ -63,13 +93,43 @@
                     android:enabled="false"
                     android:text="작성자 정보 불러오는 중" />
 
-                <TextView
-                    android:id="@+id/textDetailStats"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:textColor="#666666"
-                    android:textSize="14sp" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/textDetailLikes"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:drawableStart="@drawable/ic_post_heart"
+                        android:drawablePadding="6dp"
+                        android:gravity="center_vertical"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/textDetailComments"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="20dp"
+                        android:drawableStart="@drawable/ic_post_comment"
+                        android:drawableTint="#77717F"
+                        android:drawablePadding="6dp"
+                        android:gravity="center_vertical"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/textDetailRating"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="20dp"
+                        android:drawableStart="@drawable/ic_post_star"
+                        android:drawablePadding="6dp"
+                        android:gravity="center_vertical"
+                        android:textSize="14sp" />
+                </LinearLayout>
 
                 <!-- 운동 분류와 기구 -->
                 <TextView
