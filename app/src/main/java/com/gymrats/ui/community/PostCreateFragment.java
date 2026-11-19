@@ -1,6 +1,15 @@
 package com.gymrats.ui.community;
 
 import android.os.Bundle;
+import android.content.Intent;
+import android.net.Uri;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.SeekBar;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.lifecycle.ViewModelProvider;
+import com.bumptech.glide.Glide;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -18,7 +27,6 @@ import android.widget.Toast;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FieldValue;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,6 +36,18 @@ import com.gymrats.R;
 import java.util.ArrayList;
 
 public class PostCreateFragment extends Fragment {
+    private PostUploadViewModel uploadModel;
+    private final ActivityResultLauncher<String[]> videoPicker = registerForActivityResult(
+            new ActivityResultContracts.OpenDocument(), uri -> {
+                if (uri == null) return;
+                try {
+                    requireContext().getContentResolver().takePersistableUriPermission(
+                            uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                } catch (SecurityException ignored) {
+                    // 일부 파일 제공자는 현재 세션에서만 읽기 권한을 허용합니다.
+                }
+                uploadModel.selectVideo(uri);
+            });
 
     // 표시 이름과 DB에 저장할 ID는 같은 순서로 관리
     private static final String[] BODY_NAMES = {
@@ -63,6 +83,12 @@ public class PostCreateFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        uploadModel = new ViewModelProvider(this).get(PostUploadViewModel.class);
+        if (savedInstanceState != null && uploadModel.videoUri == null && !uploadModel.busy) {
+            String savedUri = savedInstanceState.getString("videoUri");
+            if (savedUri != null) uploadModel.selectVideo(Uri.parse(savedUri),
+                    savedInstanceState.getLong("thumbnailTimeMs", 0));
+        }
 
         // 화면 회전 등으로 Fragment가 다시 만들어지면 선택값 복원
         if (savedInstanceState != null) {
@@ -78,6 +104,58 @@ public class PostCreateFragment extends Fragment {
             @Nullable Bundle savedInstanceState
     ) {
         super.onViewCreated(view, savedInstanceState);
+        view.findViewById(R.id.btnSelectVideo).setOnClickListener(v ->
+                videoPicker.launch(new String[]{"video/*"}));
+        SeekBar timeline = view.findViewById(R.id.seekThumbnailTime);
+        timeline.setMax(ThumbnailTimeline.MAX_PROGRESS);
+        timeline.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser) uploadModel.selectThumbnail(
+                        ThumbnailTimeline.timeAt(progress, uploadModel.durationMs));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                seekBar.getParent().requestDisallowInterceptTouchEvent(true);
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                seekBar.getParent().requestDisallowInterceptTouchEvent(false);
+            }
+        });
+        uploadModel.status.observe(getViewLifecycleOwner(), status -> {
+            ((TextView) view.findViewById(R.id.textVideoStatus)).setText(status);
+            view.findViewById(R.id.btnSelectVideo).setEnabled(!uploadModel.busy);
+            Button submit = view.findViewById(R.id.btnSubmitPost);
+            submit.setEnabled(!uploadModel.busy && !uploadModel.extracting
+                    && uploadModel.thumbnail != null);
+            submit.setText(uploadModel.busy || uploadModel.extracting ? "처리 중…" : "등록");
+            view.findViewById(R.id.thumbnailTimeline).setVisibility(
+                    uploadModel.videoUri == null ? View.GONE : View.VISIBLE);
+            timeline.setEnabled(!uploadModel.busy);
+            if (!timeline.isPressed()) timeline.setProgress(ThumbnailTimeline.progressAt(
+                    uploadModel.selectedTimeMs, uploadModel.durationMs));
+            ((TextView) view.findViewById(R.id.textThumbnailTime)).setText(getString(
+                    R.string.thumbnail_time,
+                    ThumbnailTimeline.formatTime(uploadModel.selectedTimeMs),
+                    ThumbnailTimeline.formatTime(uploadModel.durationMs)));
+            ImageView preview = view.findViewById(R.id.imageVideoPreview);
+            preview.setVisibility(uploadModel.thumbnail == null ? View.GONE : View.VISIBLE);
+            preview.setAlpha(uploadModel.extracting ? 0.45f : 1f);
+            if (uploadModel.thumbnail != null && preview.getTag() != uploadModel.thumbnail) {
+                preview.setTag(uploadModel.thumbnail);
+                Glide.with(this).load(uploadModel.thumbnail).into(preview);
+            }
+        });
+        uploadModel.completed.observe(getViewLifecycleOwner(), completed -> {
+            if (Boolean.TRUE.equals(completed)) {
+                uploadModel.completed.setValue(false);
+                Toast.makeText(requireContext(), "게시글이 등록되었습니다.", Toast.LENGTH_SHORT).show();
+                NavHostFragment.findNavController(this).popBackStack();
+            }
+        });
         // 작성 화면을 닫고 이전 화면으로 복귀
         view.findViewById(R.id.btnBack).setOnClickListener(v ->
                 NavHostFragment.findNavController(this).popBackStack()
@@ -161,7 +239,8 @@ public class PostCreateFragment extends Fragment {
         );
         // 입력 검증 후 Firestore에 게시글 저장
         Button submitButton = view.findViewById(R.id.btnSubmitPost);
-        submitButton.setEnabled(true);
+        submitButton.setEnabled(!uploadModel.busy && !uploadModel.extracting
+                && uploadModel.thumbnail != null);
         submitButton.setOnClickListener(v -> submitPost(view));
     }
 
@@ -259,6 +338,8 @@ public class PostCreateFragment extends Fragment {
         outState.putInt("primaryPosition", primaryPosition);
         outState.putBooleanArray("secondary", secondarySelected);
         outState.putBooleanArray("equipment", equipmentSelected);
+        if (uploadModel.videoUri != null) outState.putString("videoUri", uploadModel.videoUri.toString());
+        outState.putLong("thumbnailTimeMs", uploadModel.selectedTimeMs);
     }
 
     private void restoreSelection(
@@ -273,13 +354,16 @@ public class PostCreateFragment extends Fragment {
         }
     }
     private void submitPost(View view) {
+        if (uploadModel.busy || uploadModel.extracting) return;
+        if (uploadModel.videoUri == null || uploadModel.thumbnail == null) {
+            Toast.makeText(requireContext(), "동영상을 먼저 선택해주세요.", Toast.LENGTH_SHORT).show();
+            return;
+        }
         EditText titleInput = view.findViewById(R.id.editPostTitle);
         EditText descriptionInput =
                 view.findViewById(R.id.editPostDescription);
         EditText precautionInput =
                 view.findViewById(R.id.editPostPrecaution);
-
-        Button submitButton = view.findViewById(R.id.btnSubmitPost);
 
         String title = titleInput.getText().toString().trim();
         String description =
@@ -333,8 +417,6 @@ public class PostCreateFragment extends Fragment {
         post.put("primaryBodyPartId", getPrimaryBodyPartId());
         post.put("secondaryBodyPartId", getSecondaryBodyPartIds());
         post.put("equipmentIds", equipmentIds);
-        post.put("thumbnailPath", null);
-        post.put("videoPath", null);
         post.put("status", "published");
         post.put("likeCount", 0L);
         post.put("reviewCount", 0L);
@@ -342,38 +424,6 @@ public class PostCreateFragment extends Fragment {
         post.put("ratingAverage", 0.0);
         post.put("createdAt", FieldValue.serverTimestamp());
 
-        // 저장 중 연속 클릭 방지
-        submitButton.setEnabled(false);
-        submitButton.setText("등록 중…");
-
-        FirebaseFirestore.getInstance()
-                .collection("posts")
-                .add(post)
-                .addOnCompleteListener(task -> {
-                    // 화면을 떠난 뒤에는 이전 화면의 View를 조작하지 않음
-                    if (!isAdded() || getView() != view) {
-                        return;
-                    }
-
-                    submitButton.setEnabled(true);
-                    submitButton.setText("등록");
-
-                    if (task.isSuccessful()) {
-                        Toast.makeText(
-                                requireContext(),
-                                "게시글이 등록되었습니다.",
-                                Toast.LENGTH_SHORT
-                        ).show();
-
-                        NavHostFragment.findNavController(this)
-                                .popBackStack();
-                    } else {
-                        Toast.makeText(
-                                requireContext(),
-                                "등록에 실패했습니다. 네트워크 연결을 확인해주세요.",
-                                Toast.LENGTH_LONG
-                        ).show();
-                    }
-                });
+        uploadModel.upload(post, currentUser.getUid());
     }
 }
