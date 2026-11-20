@@ -5,6 +5,7 @@ plugins {
 
 android {
     namespace = "com.gymrats"
+
     compileSdk {
         version = release(37)
     }
@@ -26,6 +27,7 @@ android {
             }
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -33,6 +35,8 @@ android {
 }
 
 dependencies {
+
+    // 기본 Android 라이브러리
     implementation(libs.activity.ktx)
     implementation(libs.appcompat)
     implementation(libs.constraintlayout)
@@ -42,6 +46,10 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-storage")
+
+    // Glide - 이미지 표시
+    implementation("com.github.bumptech.glide:glide:4.16.0")
 
     // Navigation
     implementation("androidx.navigation:navigation-fragment:2.10.2")
@@ -49,20 +57,12 @@ dependencies {
 
     // RecyclerView
     implementation("androidx.recyclerview:recyclerview:1.4.0")
+
+    // Media3 - 동영상 재생
+    implementation("androidx.media3:media3-exoplayer:1.11.1")
+    implementation("androidx.media3:media3-ui:1.11.1")
 
     // Testing
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.espresso.core)
-    androidTestImplementation(libs.ext.junit)
-
-    // Navigation
-    implementation("androidx.navigation:navigation-fragment:2.10.2")
-    implementation("androidx.navigation:navigation-ui:2.10.2")
-
-    // RecyclerView
-    implementation("androidx.recyclerview:recyclerview:1.4.0")
-
-    // Test
     testImplementation(libs.junit)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ext.junit)

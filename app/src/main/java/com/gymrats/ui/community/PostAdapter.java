@@ -4,6 +4,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.ImageView;
+import com.bumptech.glide.Glide;
+import com.google.firebase.storage.FirebaseStorage;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -45,6 +48,23 @@ public class PostAdapter
             int position
     ) {
         DocumentSnapshot post = posts.get(position);
+        String thumbnailPath = post.getString("thumbnailPath");
+        holder.thumbnail.setTag(thumbnailPath);
+        Glide.with(holder.itemView).clear(holder.thumbnail);
+        holder.thumbnail.setImageResource(R.drawable.post_thumbnail_placeholder);
+        if (thumbnailPath != null && !thumbnailPath.isEmpty()) {
+            FirebaseStorage.getInstance().getReference().child(thumbnailPath)
+                    .getDownloadUrl().addOnSuccessListener(uri -> {
+                        // 재사용된 카드가 다른 게시글을 표시 중일 수 있으므로 경로를 확인합니다.
+                        if (thumbnailPath.equals(holder.thumbnail.getTag())) {
+                            Glide.with(holder.itemView.getContext().getApplicationContext()).load(uri).centerCrop()
+                                    .placeholder(R.drawable.post_thumbnail_placeholder)
+                                    .error(R.drawable.post_thumbnail_placeholder)
+                                    .into(holder.thumbnail);
+                        }
+                    }).addOnFailureListener(error ->
+                            android.util.Log.w("PostAdapter", "Thumbnail unavailable", error));
+        }
 
         // 제목과 운동 부위 표시
         String title = post.getString("title");
@@ -52,19 +72,24 @@ public class PostAdapter
 
         holder.title.setText(title == null ? "" : title);
         holder.bodyPart.setText(getBodyPartName(bodyPartId));
+        String videoPath = post.getString("videoPath");
+        holder.play.setVisibility(videoPath == null || videoPath.isEmpty() ? View.GONE : View.VISIBLE);
 
         // 집계값이 없는 기존 문서도 기본값으로 표시
         Long likeCount = post.getLong("likeCount");
         Long reviewCount = post.getLong("reviewCount");
         Double ratingAverage = post.getDouble("ratingAverage");
-
-        holder.stats.setText(String.format(
-                Locale.getDefault(),
-                "좋아요 %d · ★ %.1f (%d)",
-                likeCount == null ? 0L : likeCount,
-                ratingAverage == null ? 0.0 : ratingAverage,
-                reviewCount == null ? 0L : reviewCount
-        ));
+        Long commentCount = post.getLong("commentCount");
+        long likes = likeCount == null ? 0 : likeCount;
+        long comments = commentCount == null ? 0 : commentCount;
+        double rating = ratingAverage == null ? 0 : ratingAverage;
+        holder.likes.setText(formatCount(likes));
+        holder.comments.setText(formatCount(comments));
+        holder.rating.setText(String.format(Locale.getDefault(), "%.1f", rating));
+        holder.likes.setContentDescription(holder.itemView.getContext().getString(R.string.post_likes_description, likes));
+        holder.comments.setContentDescription(holder.itemView.getContext().getString(R.string.post_comments_description, comments));
+        holder.rating.setContentDescription(holder.itemView.getContext().getString(
+                R.string.post_rating_description, rating, reviewCount == null ? 0L : reviewCount));
         // 현재 카드가 표시하는 게시글 열기
         holder.itemView.setOnClickListener(v ->
                 clickListener.onPostClick(post.getId())
@@ -72,8 +97,21 @@ public class PostAdapter
     }
 
     @Override
+    public void onViewRecycled(@NonNull PostViewHolder holder) {
+        holder.thumbnail.setTag(null);
+        Glide.with(holder.itemView).clear(holder.thumbnail);
+        super.onViewRecycled(holder);
+    }
+
+    @Override
     public int getItemCount() {
         return posts.size();
+    }
+
+    private String formatCount(long count) {
+        if (count >= 10000) return String.format(Locale.getDefault(), "%.1f만", count / 10000.0);
+        if (count >= 1000) return String.format(Locale.getDefault(), "%.1f천", count / 1000.0);
+        return String.valueOf(count);
     }
 
     // DB의 부위 ID를 화면 표시 이름으로 변환
@@ -104,14 +142,22 @@ public class PostAdapter
 
         final TextView title;
         final TextView bodyPart;
-        final TextView stats;
+        final TextView likes;
+        final TextView comments;
+        final TextView rating;
+        final ImageView thumbnail;
+        final ImageView play;
 
         PostViewHolder(@NonNull View itemView) {
             super(itemView);
 
             title = itemView.findViewById(R.id.textPostTitle);
             bodyPart = itemView.findViewById(R.id.textPostBodyPart);
-            stats = itemView.findViewById(R.id.textPostStats);
+            likes = itemView.findViewById(R.id.textPostLikes);
+            comments = itemView.findViewById(R.id.textPostComments);
+            rating = itemView.findViewById(R.id.textPostRating);
+            thumbnail = itemView.findViewById(R.id.imagePostThumbnail);
+            play = itemView.findViewById(R.id.imagePostPlay);
         }
     }
     // 클릭한 게시글 ID를 Fragment에 전달

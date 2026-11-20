@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="post_video_loading">동영상을 불러오는 중…</string>
+    <string name="post_video_preparing">재생할 영상을 준비하고 있습니다. 잠시 기다려주세요.</string>
+    <string name="post_video_missing">동영상이 없는 게시글입니다.</string>
+    <string name="post_video_failed">동영상을 재생할 수 없습니다. 연결 상태를 확인하고 다시 시도해주세요.</string>
+    <string name="post_video_retry">다시 시도</string>
+    <string name="post_video_description">운동법 동영상</string>
+    <string name="post_likes_description">좋아요 %1$d개</string>
+    <string name="post_comments_description">댓글 %1$d개</string>
+    <string name="post_rating_description">별점 %1$.1f, 후기 %2$d개</string>
+</resources>
