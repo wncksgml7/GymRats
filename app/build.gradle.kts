@@ -41,6 +41,12 @@ dependencies {
     implementation(libs.appcompat)
     implementation(libs.constraintlayout)
     implementation(libs.material)
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+
+    // 동영상 재생 기능
+    implementation("androidx.media3:media3-exoplayer:1.11.1")
+    implementation("androidx.media3:media3-ui:1.11.1")
+
 
     // Firebase
     implementation(platform(libs.firebase.bom))
@@ -48,8 +54,10 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-storage")
 
+
     // Glide - 이미지 표시
     implementation("com.github.bumptech.glide:glide:4.16.0")
+
 
     // Navigation
     implementation("androidx.navigation:navigation-fragment:2.10.2")
