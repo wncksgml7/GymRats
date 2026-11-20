@@ -37,15 +37,33 @@ dependencies {
     implementation(libs.appcompat)
     implementation(libs.constraintlayout)
     implementation(libs.material)
+
+    // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
+    implementation("com.google.firebase:firebase-firestore")
+
+    // Navigation
+    implementation("androidx.navigation:navigation-fragment:2.10.2")
+    implementation("androidx.navigation:navigation-ui:2.10.2")
+
+    // RecyclerView
+    implementation("androidx.recyclerview:recyclerview:1.4.0")
+
+    // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ext.junit)
+
+    // Navigation
     implementation("androidx.navigation:navigation-fragment:2.10.2")
     implementation("androidx.navigation:navigation-ui:2.10.2")
-    implementation("com.google.android.material:material:1.14.0")
-    implementation("com.google.firebase:firebase-firestore")
+
+    // RecyclerView
     implementation("androidx.recyclerview:recyclerview:1.4.0")
 
+    // Test
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.espresso.core)
+    androidTestImplementation(libs.ext.junit)
 }
