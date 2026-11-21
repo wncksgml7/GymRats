@@ -45,6 +45,8 @@ public final class UserDocumentManager {
             if (!profileSnapshot.exists()) {
                 // 공개 가능한 세 필드만 별도 문서로 생성
                 Map<String, Object> profile = new HashMap<>();
+                profile.put("profileImagePath", userSnapshot.exists()
+                        ? userSnapshot.getString("profileImagePath") : null);
 
                 profile.put(
                         "nickname",

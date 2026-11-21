@@ -47,6 +47,7 @@ public class PostDetailFragment extends Fragment {
     private int videoRequest;
     private boolean postLoaded;
     private VideoPlaybackCache playbackCache;
+    private PostDiscussion discussion;
 
     public PostDetailFragment() {
         super(R.layout.fragment_post_detail);
@@ -89,6 +90,7 @@ public class PostDetailFragment extends Fragment {
             return;
         }
 
+        discussion = new PostDiscussion(this, view, postId);
         loadPost(view, postId);
     }
 
@@ -327,12 +329,14 @@ public class PostDetailFragment extends Fragment {
     public void onStart() {
         super.onStart();
         started = true;
+        if (discussion != null) discussion.start();
         initializePlayer();
     }
 
     @Override
     public void onStop() {
         started = false;
+        if (discussion != null) discussion.stop();
         releasePlayer();
         super.onStop();
     }
@@ -347,6 +351,8 @@ public class PostDetailFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
+        if (discussion != null) discussion.stop();
+        discussion = null;
         videoRequest++;
         resolvingVideo = false;
         releasePlayer();

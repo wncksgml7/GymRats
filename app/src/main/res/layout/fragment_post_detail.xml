@@ -102,6 +102,11 @@
 
                     <TextView
                         android:id="@+id/textDetailLikes"
+                        android:minWidth="48dp"
+                        android:minHeight="48dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackgroundBorderless"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:drawableStart="@drawable/ic_post_heart"
@@ -111,6 +116,10 @@
 
                     <TextView
                         android:id="@+id/textDetailComments"
+                        android:minWidth="48dp"
+                        android:minHeight="48dp"
+                        android:clickable="true"
+                        android:focusable="true"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="20dp"
@@ -132,6 +141,12 @@
                 </LinearLayout>
 
                 <!-- 운동 분류와 기구 -->
+                <Button
+                    android:id="@+id/btnBookmark"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:enabled="false"
+                    android:text="북마크 담기" />
                 <TextView
                     android:id="@+id/textDetailPrimaryBodyPart"
                     android:layout_width="match_parent"
@@ -186,6 +201,18 @@
                     android:layout_marginTop="8dp"
                     android:textIsSelectable="true"
                     android:textSize="16sp" />
+
+                <!-- 후기와 자유 댓글은 각각 독립된 목록입니다. -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:layout_marginTop="28dp">
+                    <Button android:id="@+id/btnReviewsTab" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="운동 후기" />
+                    <Button android:id="@+id/btnCommentsTab" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="질문·댓글" />
+                </LinearLayout>
+                <TextView android:id="@+id/textDiscussionError" android:layout_width="match_parent" android:layout_height="wrap_content" android:textColor="#B3261E" android:accessibilityLiveRegion="polite" />
+                <Button android:id="@+id/btnDiscussionRetry" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="다시 불러오기" android:visibility="gone" />
+                <Button android:id="@+id/btnWriteReview" android:layout_width="match_parent" android:layout_height="56dp" android:text="후기 작성하기" />
+                <LinearLayout android:id="@+id/commentComposer" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone" />
+                <LinearLayout android:id="@+id/discussionList" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="16dp" />
 
             </LinearLayout>
 

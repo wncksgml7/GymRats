@@ -22,7 +22,7 @@ import com.gymrats.model.ProfileModule;
 import java.util.ArrayList;
 import java.util.List;
 
-//프로필 커스터마이즈 : 내 정보 화면에 보일 모듈의 표시 여부와 순서를 정해 users/{uid}.profileModules에 저장
+// 내 페이지와 방문 페이지에 보일 모듈 순서·표시 여부를 함께 저장합니다.
 public class ProfileCustomizeActivity extends AppCompatActivity {
 
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -51,6 +51,7 @@ public class ProfileCustomizeActivity extends AppCompatActivity {
         tvNickname = findViewById(R.id.tvNickname);
         tvItemInfo = findViewById(R.id.tvItemInfo);
         btnSave = findViewById(R.id.btnSave);
+        btnSave.setEnabled(false);
 
         //뒤로가기는 저장하지 않고 닫고, 저장버튼을 누르면 저장하고 닫음
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
@@ -112,6 +113,11 @@ public class ProfileCustomizeActivity extends AppCompatActivity {
     private void load() {
         //유저 문서 요청
         userRef.get().addOnSuccessListener(doc -> {
+            if (isFinishing() || isDestroyed()) return;
+            if (!doc.exists()) {
+                Toast.makeText(this, "회원 정보를 찾을 수 없습니다.", Toast.LENGTH_LONG).show();
+                return;
+            }
             tvNickname.setText(doc.getString("nickname"));
 
             //어뎁터와 같은 리스트를 공유하므로 새 리스트로 바꾸지 않고 clear함
@@ -119,10 +125,16 @@ public class ProfileCustomizeActivity extends AppCompatActivity {
             //clear된 List에 firestore에서 읽은 새 내용을 채움
             modules.addAll(ProfileModule.fromFirestore(doc.get("profileModules")));
             adapter.notifyDataSetChanged(); //데이터가 통째로 바뀌었으니 전체 다시 그림
+            btnSave.setEnabled(true);
 
-            List<?> displayed = (List<?>) doc.get("displayedAchievements");
+            Object rawDisplayed = doc.get("displayedAchievements");
+            List<?> displayed = rawDisplayed instanceof List ? (List<?>) rawDisplayed : null;
             int achievementCount = displayed == null ? 0 : displayed.size();
             adapter.setSubtitle(ProfileModule.ACHIEVEMENTS, achievementCount + "개 전시 중");
+        }).addOnFailureListener(error -> {
+            if (!isFinishing() && !isDestroyed()) {
+                Toast.makeText(this, "설정을 불러오지 못했습니다. 화면을 다시 열어 주세요.", Toast.LENGTH_LONG).show();
+            }
         });
 
         //트로피 개수 요청
@@ -142,8 +154,8 @@ public class ProfileCustomizeActivity extends AppCompatActivity {
         //저장중 버튼을 여러번 누르는걸 막음, 비동기라 결과가 오기전에 또 누를수도 있기 때문
         btnSave.setEnabled(false);
 
-        //내 문서의 특정 필드 하나만 바꿈
-        userRef.update("profileModules", ProfileModule.toFirestore(modules))
+        // 둘 중 하나라도 실패하면 어느 쪽도 바뀌지 않습니다.
+        PublicProfileSettings.save(db, userRef.getId(), modules)
                 .addOnSuccessListener(unused -> {
                     Toast.makeText(this, "저장했습니다", Toast.LENGTH_SHORT).show();
                     finish();

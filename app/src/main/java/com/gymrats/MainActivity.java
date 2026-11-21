@@ -97,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
                     );
                     boolean hideBottomNavigation =
                             currentId == R.id.postCreateFragment ||
+                                    currentId == R.id.reviewCreateFragment ||
                                     currentId == R.id.postDetailFragment ||
                                     currentId == R.id.authorProfileFragment ||
                                     currentId == R.id.notificationFragment;
