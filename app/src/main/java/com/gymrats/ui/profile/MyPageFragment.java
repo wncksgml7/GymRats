@@ -19,6 +19,9 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.AggregateSource;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.android.gms.tasks.Tasks;
+import android.os.Handler;
+import android.os.Looper;
 import com.gymrats.R;
 import com.gymrats.model.ProfileModule;
 import com.gymrats.ui.auth.LoginActivity;
@@ -40,6 +43,9 @@ public class MyPageFragment extends Fragment {
     private TextView tvStreak, tvContributionTotal;
     private GridLayout gridContribution;
     private LinearLayout moduleContainer;
+    private int loadRequest;
+    private final Handler loadHandler = new Handler(Looper.getMainLooper());
+    private Runnable loadTimeout;
 
     // profileModules의 type → 화면의 카드 
     private final Map<String, View> moduleViews = new HashMap<>();
@@ -96,7 +102,7 @@ public class MyPageFragment extends Fragment {
             startActivity(intent);
         });
 
-        applyModules(ProfileModule.defaults());
+        view.findViewById(R.id.btnRetryMyPage).setOnClickListener(v -> loadProfile());
         showContributions(makeDummyContributions()); // contributions 컬렉션이 생기면 교체
     }
 
@@ -108,27 +114,73 @@ public class MyPageFragment extends Fragment {
     }
 
     private void loadProfile() {
+        View view = getView();
+        if (view == null) return;
+        int request = ++loadRequest;
+        cancelLoadTimeout();
+        view.findViewById(R.id.scrollMyPageContent).setVisibility(View.GONE);
+        view.findViewById(R.id.myPageLoadState).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.progressMyPage).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.btnRetryMyPage).setVisibility(View.GONE);
+        ((TextView) view.findViewById(R.id.textMyPageLoadState)).setText(R.string.my_page_loading);
         String uid = FirebaseAuth.getInstance().getUid();
-        if (uid == null) return;
+        if (uid == null) {
+            showLoadError(view, R.string.my_page_user_missing);
+            return;
+        }
+        var profileTask = db.collection("users").document(uid).get();
+        var countTask = db.collection("posts").whereEqualTo("authorId", uid)
+                .count().get(AggregateSource.SERVER);
+        loadTimeout = () -> {
+            if (getView() != view || request != loadRequest) return;
+            loadRequest++;
+            showLoadError(view, R.string.my_page_load_failed);
+        };
+        loadHandler.postDelayed(loadTimeout, 15000);
+        // 두 조회가 끝난 뒤 저장된 구성으로 한 번에 표시합니다.
+        Tasks.whenAllComplete(profileTask, countTask).addOnCompleteListener(done -> {
+            if (!isAdded() || getView() != view || request != loadRequest) return;
+            cancelLoadTimeout();
+            if (!profileTask.isSuccessful()) {
+                showLoadError(view, R.string.my_page_load_failed);
+                return;
+            }
+            DocumentSnapshot doc = profileTask.getResult();
+            if (doc == null || !doc.exists()) {
+                showLoadError(view, R.string.my_page_user_missing);
+                return;
+            }
+            bindProfile(doc);
+            applyModules(ProfileModule.fromFirestore(doc.get("profileModules")));
+            // 집계 조회 실패를 게시글 0개로 잘못 표시하지 않습니다.
+            tvPostCount.setText(countTask.isSuccessful() ? formatCount(countTask.getResult().getCount())
+                    : getString(R.string.my_page_count_unavailable));
+            view.findViewById(R.id.myPageLoadState).setVisibility(View.GONE);
+            view.findViewById(R.id.scrollMyPageContent).setVisibility(View.VISIBLE);
+        });
+    }
 
-        db.collection("users").document(uid).get()
-                .addOnSuccessListener(doc -> {
-                    if (!isAdded() || getView() == null || !doc.exists()) return;
-                    bindProfile(doc);
-                    applyModules(ProfileModule.fromFirestore(doc.get("profileModules")));
-                });
+    private void showLoadError(View view, int message) {
+        view.findViewById(R.id.progressMyPage).setVisibility(View.GONE);
+        view.findViewById(R.id.btnRetryMyPage).setVisibility(View.VISIBLE);
+        ((TextView) view.findViewById(R.id.textMyPageLoadState)).setText(message);
+    }
 
-        // 게시글 수는 users에 따로 저장하지 않고 posts에서 개수만 셈
-        db.collection("posts").whereEqualTo("authorId", uid)
-                .count().get(AggregateSource.SERVER)
-                .addOnSuccessListener(snap -> {
-                    if (isAdded() && getView() != null) {
-                        tvPostCount.setText(formatCount(snap.getCount()));
-                    }
-                });
+    private void cancelLoadTimeout() {
+        if (loadTimeout != null) loadHandler.removeCallbacks(loadTimeout);
+        loadTimeout = null;
+    }
+
+    @Override public void onDestroyView() {
+        loadRequest++;
+        cancelLoadTimeout();
+        ProfileImageLoader.clear(requireView().findViewById(R.id.ivProfile));
+        moduleViews.clear();
+        super.onDestroyView();
     }
 
     private void bindProfile(DocumentSnapshot doc) {
+        ProfileImageLoader.show(requireView().findViewById(R.id.ivProfile), doc.getString("profileImagePath"));
         tvNickname.setText(doc.getString("nickname"));
         String bio = doc.getString("bio");
         tvBio.setText(bio == null || bio.isEmpty() ? "소개를 입력해 보세요" : bio);
