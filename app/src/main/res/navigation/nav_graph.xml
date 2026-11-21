@@ -41,6 +41,14 @@
         </fragment>
 
         <fragment
+            android:id="@+id/reviewCreateFragment"
+            android:name="com.gymrats.ui.community.ReviewCreateFragment"
+            android:label="운동 후기 작성">
+            <argument android:name="postId" app:argType="string" />
+            <argument android:name="postTitle" app:argType="string" android:defaultValue="운동법" />
+        </fragment>
+
+        <fragment
             android:id="@+id/communityFragment"
             android:name="com.gymrats.ui.community.CommunityFragment"
             android:label="Community" />
