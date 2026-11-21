@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:background="#FAF9FC">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="24dp">
+        <Button android:id="@+id/btnBackReview" android:layout_width="wrap_content" android:layout_height="48dp" android:text="← 돌아가기" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:text="운동 후기 작성" android:textSize="26sp" android:textStyle="bold" android:textColor="#211C2B" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="평가할 운동법" android:textColor="#77717F" />
+        <TextView android:id="@+id/textReviewPostTitle" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:textSize="20sp" android:textStyle="bold" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="32dp" android:text="이 운동법은 어떠셨나요?" android:gravity="center" android:textSize="20sp" android:textStyle="bold" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="직접 운동해 본 경험을 공유해 주세요." android:gravity="center" />
+        <RatingBar android:id="@+id/reviewStars" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center_horizontal" android:layout_marginTop="20dp" android:numStars="5" android:stepSize="1" android:progressTint="#E0AD20" android:contentDescription="운동법 별점, 1점부터 5점" />
+        <TextView android:id="@+id/textReviewScore" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:layout_marginTop="8dp" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="28dp" android:text="운동 후기" android:textSize="18sp" android:textStyle="bold" />
+        <EditText android:id="@+id/editReviewContent" android:layout_width="match_parent" android:layout_height="180dp" android:layout_marginTop="8dp" android:gravity="top|start" android:padding="12dp" android:inputType="textCapSentences|textMultiLine" android:maxLength="500" android:hint="자극이 오는 부위, 난이도, 주의할 점 등을 알려 주세요. (10~500자)" />
+        <TextView android:id="@+id/textReviewLength" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="end" />
+        <TextView android:id="@+id/textReviewError" android:layout_width="match_parent" android:layout_height="wrap_content" android:textColor="#B3261E" android:accessibilityLiveRegion="polite" />
+        <Button android:id="@+id/btnSubmitReview" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="24dp" android:text="후기 등록하기" android:enabled="false" />
+    </LinearLayout>
+</ScrollView>

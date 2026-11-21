@@ -47,6 +47,15 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="16dp"
+                android:paddingTop="12dp"
+                android:text="표시한 항목과 순서는 내 페이지를 방문한 다른 회원에게도 동일하게 보입니다."
+                android:textColor="#555555"
+                android:textSize="13sp" />
+
             <!-- 프로필 미리보기 + 꾸미기 아이템 -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"

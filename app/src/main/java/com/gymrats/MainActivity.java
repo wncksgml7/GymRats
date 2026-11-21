@@ -98,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
                     // 등록·상세·작성자 프로필에서는 하단 내비게이션 숨김
                     boolean hideBottomNavigation =
                             currentId == R.id.postCreateFragment ||
+                                    currentId == R.id.reviewCreateFragment ||
                                     currentId == R.id.postDetailFragment ||
                                     currentId == R.id.authorProfileFragment;
 
