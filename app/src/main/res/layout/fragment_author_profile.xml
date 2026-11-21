@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="12dp">
+    android:padding="12dp"
+    android:background="#FFFFFF">
 
     <!-- 이전 게시글로 돌아가기 -->
     <ImageButton
@@ -14,33 +15,51 @@
         android:contentDescription="뒤로가기"
         android:src="@drawable/ic_arrow_back" />
 
-    <!-- 공개하는 회원 정보 -->
+    <!-- 작성자 닉네임 -->
     <TextView
         android:id="@+id/textAuthorNickname"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:text="프로필 불러오는 중"
+        android:textColor="#171717"
         android:textSize="24sp"
         android:textStyle="bold" />
 
+    <!-- 팔로워 및 팔로잉 수 -->
     <TextView
         android:id="@+id/textAuthorFollowCounts"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:textSize="16sp" />
+        android:textSize="16sp"
+        android:textColor="#777777" />
 
+    <!-- 새로 추가한 팔로우 버튼 -->
+    <Button
+        android:id="@+id/btnFollow"
+        android:layout_width="140dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="16dp"
+        android:backgroundTint="#5B6BD5"
+        android:text="팔로우"
+        android:textAllCaps="false"
+        android:textColor="#FFFFFF"
+        android:textSize="15sp"
+        android:enabled="false" />
+
+    <!-- 작성한 운동법 제목 -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:layout_marginBottom="8dp"
         android:text="작성한 운동법"
+        android:textColor="#171717"
         android:textSize="18sp"
         android:textStyle="bold" />
 
-    <!-- 해당 작성자의 공개 게시글 -->
+    <!-- 작성자의 공개 게시글 -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"

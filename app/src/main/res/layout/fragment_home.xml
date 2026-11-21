@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView
-    android:id="@+id/homeScrollView"
     xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/homeScrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FFFFFF"
     android:fillViewport="true">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -15,14 +16,31 @@
         android:paddingTop="22dp"
         android:paddingBottom="24dp">
 
-        <!-- HOME 제목 -->
-        <TextView
-            android:layout_width="wrap_content"
+        <!-- HOME 제목과 알림 버튼 -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="HOME"
-            android:textColor="#171717"
-            android:textSize="28sp"
-            android:textStyle="bold" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="HOME"
+                android:textColor="#171717"
+                android:textSize="28sp"
+                android:textStyle="bold" />
+
+            <ImageButton
+                android:id="@+id/btnNotification"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:padding="11dp"
+                android:src="@drawable/ic_notification_bell"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="알림 열기" />
+        </LinearLayout>
 
         <!-- 공식 운동 가이드 -->
         <TextView
@@ -33,7 +51,6 @@
             android:textColor="#171717"
             android:textSize="21sp"
             android:textStyle="bold" />
-
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -56,7 +73,6 @@
             <TextView style="@style/HomeGuideTile" android:text="어깨" />
             <TextView style="@style/HomeGuideTile" android:text="팔" />
             <TextView style="@style/HomeGuideTile" android:text="복근" />
-
         </GridLayout>
 
         <!-- 위젯 구분선 -->
@@ -83,7 +99,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="26dp"
                 android:orientation="vertical">
-
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -133,14 +148,11 @@
                         android:backgroundTint="#5B6BD5"
                         android:text="루틴 불러오기"
                         android:textColor="#FFFFFF" />
-
                 </LinearLayout>
             </LinearLayout>
 
             <!-- 추가 위젯이 여기에 배치됨 -->
-
         </LinearLayout>
-
         <!-- 위젯 추가 버튼 -->
         <TextView
             android:id="@+id/btnAddWidget"
@@ -152,6 +164,5 @@
             android:text="+&#10;위젯 추가"
             android:textColor="#777777"
             android:textSize="14sp" />
-
     </LinearLayout>
 </ScrollView>

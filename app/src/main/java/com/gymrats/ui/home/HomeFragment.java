@@ -1,5 +1,6 @@
 package com.gymrats.ui.home;
 
+import androidx.navigation.fragment.NavHostFragment;
 import android.graphics.drawable.GradientDrawable;
 import android.view.MotionEvent;
 import android.widget.ScrollView;
@@ -21,6 +22,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.fragment.NavHostFragment;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.gymrats.R;
@@ -194,6 +196,11 @@ public class HomeFragment extends Fragment {
 
         view.findViewById(R.id.btnAddWidget)
                 .setOnClickListener(v -> showWidgetSheet());
+
+        // 홈 화면 우측 상단의 알림 아이콘 클릭 시 알림 화면으로 이동
+        view.findViewById(R.id.btnNotification).setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(R.id.notificationFragment));
 
         if (timerAdded) {
             createWorkoutTimerWidget();
@@ -1227,4 +1234,3 @@ public class HomeFragment extends Fragment {
     }
 
 } // HomeFragment 클래스 끝
-

@@ -62,4 +62,11 @@
         android:name="com.gymrats.ui.profile.MyPageFragment"
         android:label="My Page" />
 
+    <!-- 알림 화면 -->
+    <fragment
+        android:id="@+id/notificationFragment"
+        android:name="com.gymrats.ui.notification.NotificationFragment"
+        android:label="알림" />
+
+
 </navigation>
