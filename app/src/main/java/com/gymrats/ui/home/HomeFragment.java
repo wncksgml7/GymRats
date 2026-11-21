@@ -1,5 +1,6 @@
 package com.gymrats.ui.home;
 
+import androidx.navigation.fragment.NavHostFragment;
 import android.graphics.drawable.GradientDrawable;
 import android.view.MotionEvent;
 import android.widget.ScrollView;
@@ -21,14 +22,23 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.fragment.NavHostFragment;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.gymrats.R;
 
 import java.util.ArrayList;
 import java.util.Locale;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.DocumentReference;
+
 
 public class HomeFragment extends Fragment {
+    private FirebaseFirestore db;
+    private FirebaseAuth auth;
+    private DocumentReference widgetRef;
 
     private static final String PREFS = "gymrats_home_widgets";
     private static final String ADDED = "workout_timer_added";
@@ -168,6 +178,7 @@ public class HomeFragment extends Fragment {
             @Nullable Bundle state) {
 
         super.onViewCreated(view, state);
+        initFirestore();
 
         widgetContainer = view.findViewById(R.id.widgetContainer);
         routineWidget = view.findViewById(R.id.routineWidget);
@@ -186,12 +197,21 @@ public class HomeFragment extends Fragment {
         view.findViewById(R.id.btnAddWidget)
                 .setOnClickListener(v -> showWidgetSheet());
 
+        // 홈 화면 우측 상단의 알림 아이콘 클릭 시 알림 화면으로 이동
+        view.findViewById(R.id.btnNotification).setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(R.id.notificationFragment));
+
         if (timerAdded) {
             createWorkoutTimerWidget();
         }
+
         if (restAdded) createRestTimerWidget();
 
         renderWidgets();
+
+
+        loadWidgets();
 
 
         scrollView.post(() -> {
@@ -977,9 +997,8 @@ public class HomeFragment extends Fragment {
         row.addView(textBox,
                 new LinearLayout.LayoutParams(0, -2, 1));
 
-        // 버튼 상태
+        // 실제 위젯 추가 여부만 관리: 추가 확인을 위한 두 번째 클릭 제거
         final boolean[] isAdded = {added};
-        final boolean[] confirmed = {added};
 
         Button button = new Button(requireContext());
 
@@ -993,58 +1012,35 @@ public class HomeFragment extends Fragment {
         button.setStateListAnimator(null);
 
         Runnable updateButton = () -> {
-
-            if (isAdded[0] || confirmed[0]) {
-
+            if (isAdded[0]) {
                 button.setText("추가됨");
                 button.setTextColor(0xFF999999);
-                button.setBackground(
-                        roundedBackground(0xFFF3F4F6, 11));
-
+                button.setBackground(roundedBackground(0xFFF3F4F6, 11));
             } else {
-
                 button.setText("추가");
                 button.setTextColor(0xFFFFFFFF);
-                button.setBackground(
-                        roundedBackground(0xFF5B6BD5, 11));
+                button.setBackground(roundedBackground(0xFF5B6BD5, 11));
             }
         };
 
         updateButton.run();
-
-        button.setEnabled(
-                addAction != null || removeAction != null);
+        button.setEnabled(addAction != null || removeAction != null);
 
         button.setOnClickListener(v -> {
-
-            // 이미 홈 화면에 추가된 위젯 삭제
             if (isAdded[0]) {
-
+                // 추가됨: 즉시 삭제
                 if (removeAction != null) {
                     removeAction.run();
+                    isAdded[0] = false;
                 }
-
-                isAdded[0] = false;
-                confirmed[0] = false;
-
-                updateButton.run();
-                return;
+            } else {
+                // 추가: 첫 번째 클릭에서 실제로 생성
+                if (addAction != null) {
+                    addAction.run();
+                    isAdded[0] = true;
+                }
             }
-
-            // 첫 번째 클릭
-            if (!confirmed[0]) {
-
-                confirmed[0] = true;
-                updateButton.run();
-
-                return;
-            }
-
-            // 두 번째 클릭: 실제 추가
-            if (addAction != null) {
-                addAction.run();
-                isAdded[0] = true;
-            }
+            updateButton.run();
         });
 
         row.addView(button,
@@ -1159,4 +1155,82 @@ public class HomeFragment extends Fragment {
                 getResources().getDisplayMetrics().density + 0.5f);
     }
 
-}
+    // ===============================
+    // Firebase Firestore 초기화
+    // ===============================
+    private void initFirestore() {
+
+        db = FirebaseFirestore.getInstance();
+        auth = FirebaseAuth.getInstance();
+
+        FirebaseUser user = auth.getCurrentUser();
+
+        if (user == null) {
+            Log.d("Firestore", "로그인된 사용자 없음");
+            return;
+        }
+
+        String uid = user.getUid();
+        Log.d("Firestore", "로그인 UID: " + uid);
+
+        widgetRef = db.collection("users")
+                .document(uid)
+                .collection("home")
+                .document("widgets");
+    }
+    // ===============================
+// Firestore에서 위젯 정보 불러오기
+// ===============================
+    private void loadWidgets() {
+
+        if (widgetRef == null) {
+            Log.d("Firestore", "로그인 정보 없음");
+            return;
+        }
+
+        widgetRef.get()
+                .addOnSuccessListener(document -> {
+
+                    if (!isAdded() || getView() == null) return;
+
+                    if (!document.exists()) {
+                        Log.d("Firestore", "저장된 위젯 정보 없음");
+                        return;
+                    }
+
+                    // 운동 타이머 추가 여부
+                    Boolean savedTimer =
+                            document.getBoolean("timerAdded");
+
+                    // 휴식 타이머 추가 여부
+                    Boolean savedRest =
+                            document.getBoolean("restTimerAdded");
+
+                    if (savedTimer != null) {
+                        timerAdded = savedTimer;
+                    }
+
+                    if (savedRest != null) {
+                        restAdded = savedRest;
+                    }
+
+                    // 필요한 위젯 생성
+                    if (timerAdded && timerCard == null) {
+                        createWorkoutTimerWidget();
+                    }
+
+                    if (restAdded && restCard == null) {
+                        createRestTimerWidget();
+                    }
+
+                    // 화면 다시 그리기
+                    renderWidgets();
+
+                    Log.d("Firestore", "위젯 정보 불러오기 성공");
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("Firestore", "불러오기 실패", e);
+                });
+    }
+
+} // HomeFragment 클래스 끝

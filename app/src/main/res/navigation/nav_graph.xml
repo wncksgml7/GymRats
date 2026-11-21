@@ -3,7 +3,6 @@
 <navigation
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-
     android:id="@+id/nav_graph"
     app:startDestination="@id/homeFragment">
 
@@ -25,10 +24,9 @@
             <argument
                 android:name="userId"
                 app:argType="string" />
-
         </fragment>
 
-        <!-- 선택한 게시글의 ID를 받아 상세 화면 표시 -->
+        <!-- 게시글 상세 -->
         <fragment
             android:id="@+id/postDetailFragment"
             android:name="com.gymrats.ui.community.PostDetailFragment"
@@ -37,15 +35,22 @@
             <argument
                 android:name="postId"
                 app:argType="string" />
-
         </fragment>
 
+        <!-- 운동 후기 작성 -->
         <fragment
             android:id="@+id/reviewCreateFragment"
             android:name="com.gymrats.ui.community.ReviewCreateFragment"
             android:label="운동 후기 작성">
-            <argument android:name="postId" app:argType="string" />
-            <argument android:name="postTitle" app:argType="string" android:defaultValue="운동법" />
+
+            <argument
+                android:name="postId"
+                app:argType="string" />
+
+            <argument
+                android:name="postTitle"
+                app:argType="string"
+                android:defaultValue="운동법" />
         </fragment>
 
         <fragment
@@ -65,9 +70,16 @@
 
     </navigation>
 
+    <!-- 마이페이지 -->
     <fragment
         android:id="@+id/myPageFragment"
         android:name="com.gymrats.ui.profile.MyPageFragment"
         android:label="My Page" />
+
+    <!-- 알림 화면 -->
+    <fragment
+        android:id="@+id/notificationFragment"
+        android:name="com.gymrats.ui.notification.NotificationFragment"
+        android:label="알림" />
 
 </navigation>
