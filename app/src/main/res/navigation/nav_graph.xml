@@ -34,7 +34,10 @@
 
             <argument
                 android:name="postId"
-                app:argType="string" />
+                app:argType="string"/>
+
+            <!-- 커뮤니티 그룹 밖(내 정보 화면)에서도 열 수 있게 하는 주소 -->
+            <deepLink app:uri="gymrats://post/{postId}" />
         </fragment>
 
         <!-- 운동 후기 작성 -->
@@ -81,5 +84,11 @@
         android:id="@+id/notificationFragment"
         android:name="com.gymrats.ui.notification.NotificationFragment"
         android:label="알림" />
+
+    <!-- 내가 만든 운동법 전체 목록 -->
+    <fragment
+        android:id="@+id/myPostsFragment"
+        android:name="com.gymrats.ui.profile.MyPostsFragment"
+        android:label="내가 만든 운동법" />
 
 </navigation>
