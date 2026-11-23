@@ -32,6 +32,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 
+import androidx.navigation.fragment.NavHostFragment;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import com.gymrats.ui.community.PostAdapter;
+import java.util.Collections;
+
 public class MyPageFragment extends Fragment {
 
     private static final int WEEKS = 12;
@@ -46,6 +52,10 @@ public class MyPageFragment extends Fragment {
     private int loadRequest;
     private final Handler loadHandler = new Handler(Looper.getMainLooper());
     private Runnable loadTimeout;
+
+    // 내가 만든 운동법 카드에 보여줄 최근 글 개수 지정
+    private static final int MY_POSTS_PREVIEW = 4;
+    private PostAdapter myPostsAdapter;
 
     // profileModules의 type → 화면의 카드 
     private final Map<String, View> moduleViews = new HashMap<>();
@@ -79,14 +89,23 @@ public class MyPageFragment extends Fragment {
         view.findViewById(R.id.btnEditProfile).setOnClickListener(v ->
                 startActivity(new Intent(requireContext(), ProfileCustomizeActivity.class)));
 
-        // 하위 화면은 다음주에 만들 예정
+        // 아직 미구현인 것들은 준비중으로 표시
         View.OnClickListener notReady = v ->
                 Toast.makeText(requireContext(), "준비 중입니다", Toast.LENGTH_SHORT).show();
         view.findViewById(R.id.btnShop).setOnClickListener(notReady);
         view.findViewById(R.id.tvAchievementAll).setOnClickListener(notReady);
         view.findViewById(R.id.tvTrophyManage).setOnClickListener(notReady);
-        view.findViewById(R.id.tvMyPostsAll).setOnClickListener(notReady);
         view.findViewById(R.id.tvCollectionCount).setOnClickListener(notReady);
+
+        view.findViewById(R.id.tvMyPostsAll).setOnClickListener(v ->
+                NavHostFragment.findNavController(this).navigate(R.id.myPostsFragment));
+
+        // 내가 만든 운동법 카드: 커뮤니티와 같은 게시글 카드를 2열로 표시
+        myPostsAdapter = new PostAdapter(postId -> MyPostsHelper.openPost(this, postId));
+        RecyclerView rvMyPosts = view.findViewById(R.id.rvMyPosts);
+        rvMyPosts.setLayoutManager(new GridLayoutManager(requireContext(), 2));
+        rvMyPosts.setNestedScrollingEnabled(false);
+        rvMyPosts.setAdapter(myPostsAdapter);
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         TextView textEmail = view.findViewById(R.id.textEmail);
@@ -137,7 +156,8 @@ public class MyPageFragment extends Fragment {
             showLoadError(view, R.string.my_page_load_failed);
         };
         loadHandler.postDelayed(loadTimeout, 15000);
-        // 두 조회가 끝난 뒤 저장된 구성으로 한 번에 표시합니다.
+
+        // 두 조회가 끝난 뒤 저장된 구성으로 한 번에 표시
         Tasks.whenAllComplete(profileTask, countTask).addOnCompleteListener(done -> {
             if (!isAdded() || getView() != view || request != loadRequest) return;
             cancelLoadTimeout();
@@ -152,11 +172,32 @@ public class MyPageFragment extends Fragment {
             }
             bindProfile(doc);
             applyModules(ProfileModule.fromFirestore(doc.get("profileModules")));
-            // 집계 조회 실패를 게시글 0개로 잘못 표시하지 않습니다.
+
+            // 집계 조회 실패를 게시글 0개로 잘못 표시하지 않음
             tvPostCount.setText(countTask.isSuccessful() ? formatCount(countTask.getResult().getCount())
                     : getString(R.string.my_page_count_unavailable));
             view.findViewById(R.id.myPageLoadState).setVisibility(View.GONE);
             view.findViewById(R.id.scrollMyPageContent).setVisibility(View.VISIBLE);
+            //프로필을 먼저 보여 준 뒤 따로 불러옴(게시글 조회가 늦거나 실패해도 화면은 일단 열림)
+            loadMyPosts(view, request, uid);
+        });
+    }
+
+    // 내가 만든 운동법 카드: 통계는 전체(최대 50개)로 계산하고 카드에는 최근 4개만 표시
+    private void loadMyPosts(View view, int request, String uid) {
+        TextView stats = view.findViewById(R.id.tvMyPostsStats);
+        stats.setText("운동법 불러오는 중…");
+        MyPostsHelper.query(db, uid).get().addOnCompleteListener(task -> {
+            //화면이 새로 바뀌었거나 새 요청이 있으면 현재 결과는 버림
+            if (!isAdded() || getView() != view || request != loadRequest) return;
+            if (!task.isSuccessful()) {
+                myPostsAdapter.submitPosts(Collections.emptyList());
+                stats.setText("운동법을 불러오지 못했습니다.");
+                return;
+            }
+            List<DocumentSnapshot> posts = task.getResult().getDocuments();
+            myPostsAdapter.submitPosts(posts.subList(0, Math.min(MY_POSTS_PREVIEW, posts.size())));
+            stats.setText(posts.isEmpty() ? "아직 작성한 운동법이 없습니다." : MyPostsHelper.summary(posts));
         });
     }
 
@@ -175,6 +216,8 @@ public class MyPageFragment extends Fragment {
         loadRequest++;
         cancelLoadTimeout();
         ProfileImageLoader.clear(requireView().findViewById(R.id.ivProfile));
+        ((RecyclerView) requireView().findViewById(R.id.rvMyPosts)).setAdapter(null);
+        myPostsAdapter = null;
         moduleViews.clear();
         super.onDestroyView();
     }
