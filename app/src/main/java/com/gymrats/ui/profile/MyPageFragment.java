@@ -100,6 +100,12 @@ public class MyPageFragment extends Fragment {
         view.findViewById(R.id.tvMyPostsAll).setOnClickListener(v ->
                 NavHostFragment.findNavController(this).navigate(R.id.myPostsFragment));
 
+        // 통계 줄: 게시글 → 내가 만든 운동법 목록, 댓글 → 내가 쓴 후기·댓글 목록
+        view.findViewById(R.id.boxPostCount).setOnClickListener(v ->
+                NavHostFragment.findNavController(this).navigate(R.id.myPostsFragment));
+        view.findViewById(R.id.boxCommentCount).setOnClickListener(v ->
+                NavHostFragment.findNavController(this).navigate(R.id.myCommentsFragment));
+
         // 내가 만든 운동법 카드: 커뮤니티와 같은 게시글 카드를 2열로 표시
         myPostsAdapter = new PostAdapter(postId -> MyPostsHelper.openPost(this, postId));
         RecyclerView rvMyPosts = view.findViewById(R.id.rvMyPosts);
@@ -180,6 +186,7 @@ public class MyPageFragment extends Fragment {
             view.findViewById(R.id.scrollMyPageContent).setVisibility(View.VISIBLE);
             //프로필을 먼저 보여 준 뒤 따로 불러옴(게시글 조회가 늦거나 실패해도 화면은 일단 열림)
             loadMyPosts(view, request, uid);
+            loadCommentCount(view, request, uid);
         });
     }
 
@@ -198,6 +205,16 @@ public class MyPageFragment extends Fragment {
             List<DocumentSnapshot> posts = task.getResult().getDocuments();
             myPostsAdapter.submitPosts(posts.subList(0, Math.min(MY_POSTS_PREVIEW, posts.size())));
             stats.setText(posts.isEmpty() ? "아직 작성한 운동법이 없습니다." : MyPostsHelper.summary(posts));
+        });
+    }
+
+    // 후기·댓글 수. 실패하면(색인·규칙 미설정 등) 0 대신 "—" 표시
+    private void loadCommentCount(View view, int request, String uid) {
+        TextView count = view.findViewById(R.id.tvCommentCount);
+        MyCommentsHelper.countAll(db, uid).addOnCompleteListener(task -> {
+            if (!isAdded() || getView() != view || request != loadRequest) return;
+            count.setText(task.isSuccessful() ? formatCount(task.getResult())
+                    : getString(R.string.my_page_count_unavailable));
         });
     }
 
