@@ -91,4 +91,10 @@
         android:name="com.gymrats.ui.profile.MyPostsFragment"
         android:label="내가 만든 운동법" />
 
+    <!-- 내가 쓴 후기·댓글 목록 -->
+    <fragment
+        android:id="@+id/myCommentsFragment"
+        android:name="com.gymrats.ui.profile.MyCommentsFragment"
+        android:label="내가 쓴 후기·댓글" />
+
 </navigation>

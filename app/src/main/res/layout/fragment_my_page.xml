@@ -113,7 +113,7 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- 팔로워 / 팔로잉 / 게시글 (항상 보임) -->
+        <!-- 팔로워 / 팔로잉 / 게시글 / 댓글 (항상 보임) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -162,10 +162,13 @@
                     android:textSize="11sp" />
             </LinearLayout>
 
+            <!-- 누르면 내가 만든 운동법 목록 -->
             <LinearLayout
+                android:id="@+id/boxPostCount"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:background="?attr/selectableItemBackground"
                 android:orientation="vertical">
 
                 <TextView
@@ -179,6 +182,30 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="게시글"
+                    android:textColor="#777777"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <!-- 누르면 내가 쓴 후기·댓글 목록 -->
+            <LinearLayout
+                android:id="@+id/boxCommentCount"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackground"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvCommentCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="댓글"
                     android:textColor="#777777"
                     android:textSize="11sp" />
             </LinearLayout>
