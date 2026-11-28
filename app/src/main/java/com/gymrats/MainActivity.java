@@ -26,6 +26,7 @@ import com.gymrats.ui.community.CommunityFragment;
 import com.gymrats.ui.profile.MyPageFragment;
 
 
+
 public class MainActivity extends AppCompatActivity {
 
     private NavController navController;
@@ -100,7 +101,8 @@ public class MainActivity extends AppCompatActivity {
                                     currentId == R.id.reviewCreateFragment ||
                                     currentId == R.id.postDetailFragment ||
                                     currentId == R.id.authorProfileFragment ||
-                                    currentId == R.id.notificationFragment;
+                                    currentId == R.id.notificationFragment ||
+                                    currentId == R.id.worldCupMatchFragment;
 
                     bottomNavigation.setVisibility(
                             hideBottomNavigation ? View.GONE : View.VISIBLE

@@ -5,6 +5,25 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/nav_graph"
     app:startDestination="@id/homeFragment">
+    <fragment
+        android:id="@+id/worldCupMatchFragment"
+        android:name="com.gymrats.ui.worldcup.WorldCupMatchFragment"
+        android:label="운동 이상형 월드컵" />
+
+    <fragment
+        android:id="@+id/worldCupResultFragment"
+        android:name="com.gymrats.ui.worldcup.WorldCupResultFragment"
+        android:label="월드컵 결과">
+
+        <argument
+            android:name="winnerTitle"
+            app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/worldCupRankingFragment"
+        android:name="com.gymrats.ui.worldcup.WorldCupRankingFragment"
+        android:label="전체 랭킹" />
 
     <fragment
         android:id="@+id/homeFragment"
@@ -62,6 +81,17 @@
             android:id="@+id/worldCupFragment"
             android:name="com.gymrats.ui.worldcup.WorldCupFragment"
             android:label="World Cup" />
+
+        <fragment
+            android:id="@+id/worldCupResultFragment"
+            android:name="com.gymrats.ui.worldcup.WorldCupResultFragment"
+            android:label="월드컵 결과">
+
+            <argument
+                android:name="winnerTitle"
+                app:argType="string" />
+
+        </fragment>
 
         <fragment
             android:id="@+id/postCreateFragment"

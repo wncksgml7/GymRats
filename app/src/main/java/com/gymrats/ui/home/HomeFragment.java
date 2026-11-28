@@ -213,6 +213,21 @@ public class HomeFragment extends Fragment {
 
         loadWidgets();
 
+        android.widget.Button worldCupButton =
+                view.findViewById(R.id.btnWorldCupStart);
+
+        String savedChoices = requireContext()
+                .getSharedPreferences("world_cup", android.content.Context.MODE_PRIVATE)
+                .getString("saved_choices", "");
+
+        worldCupButton.setText(savedChoices.isEmpty() ? "시작하기" : "이어서 하기");
+
+        worldCupButton.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(R.id.worldCupMatchFragment));
+
+
+
 
         scrollView.post(() -> {
             View content = scrollView.getChildAt(0);
